@@ -32,6 +32,7 @@ import {
   checkBackendHealth,
   fetchExperimentSummary,
   getExperimentCsvExportUrl,
+  getApiBaseUrl,
   searchProducts,
   fetchScenarios,
 } from '../services/api.js';
@@ -235,7 +236,7 @@ export default function ResearcherPage() {
                 ) : (
                   <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-red-300 bg-red-950 border border-red-800 font-mono">
                     <span className="w-2 h-2 rounded-full bg-red-400" />
-                    DISCONNECTED ({health?.baseUrl || 'http://localhost:8000'})
+                    DISCONNECTED ({health?.baseUrl || getApiBaseUrl()})
                   </span>
                 )}
               </div>

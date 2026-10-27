@@ -15,6 +15,7 @@ import {
   upsertExperimentSession,
   logExperimentTask,
   submitExperimentQuestionnaire,
+  getApiBaseUrl,
 } from '../services/api.js';
 
 export const STORAGE_KEY = 'searchlab_experiment_session_v3';
@@ -372,7 +373,7 @@ export function ExperimentSessionProvider({ children }) {
     status: 'checking',
     products: 0,
     latencyMs: null,
-    baseUrl: 'http://localhost:8000',
+    baseUrl: getApiBaseUrl(),
     error: null,
     checking: true,
   });
