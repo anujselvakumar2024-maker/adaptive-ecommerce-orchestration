@@ -121,15 +121,15 @@ class TaskLogRequest(BaseModel):
 
 class QuestionnaireData(BaseModel):
 
-    overall_satisfaction: int = Field(..., ge=1, le=7)
-    perceived_relevance: int = Field(..., ge=1, le=7)
-    ease_of_finding: int = Field(..., ge=1, le=7)
-    perceived_usefulness: int = Field(..., ge=1, le=7)
-    perceived_diversity: int = Field(..., ge=1, le=7)
-    product_confidence: int = Field(..., ge=1, le=7)
-    purchase_intention: int = Field(..., ge=1, le=7)
-    return_intention: int = Field(..., ge=1, le=7)
-    repeat_purchase_intention: int = Field(..., ge=1, le=7)
+    overall_satisfaction: int = Field(..., ge=1, le=5)
+    perceived_relevance: int = Field(..., ge=1, le=5)
+    ease_of_finding: int = Field(..., ge=1, le=5)
+    perceived_usefulness: int = Field(..., ge=1, le=5)
+    perceived_diversity: int = Field(..., ge=1, le=5)
+    product_confidence: int = Field(..., ge=1, le=5)
+    purchase_intention: int = Field(..., ge=1, le=5)
+    return_intention: int = Field(..., ge=1, le=5)
+    repeat_purchase_intention: int = Field(..., ge=1, le=5)
     target_retrieval_outcome: Literal["exact", "alternative", "none"]
     preferred_condition: Literal[
         "baseline",

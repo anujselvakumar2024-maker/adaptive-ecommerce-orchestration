@@ -1,19 +1,16 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useExperimentSession } from '../hooks/useExperimentSession';
-import { CATEGORIES, getCategoryById, formatINR } from '../data/categories';
+import { CATEGORIES, getCategoryById } from '../data/categories';
 import ProductSpecificationBuilder from '../components/experiment/ProductSpecificationBuilder';
+import StageInstructionModal from '../components/common/StageInstructionModal';
 import {
   CategoryIcon,
   FlaskConical,
   ShieldCheck,
   CheckCircle2,
-  AlertTriangle,
   ArrowRight,
   Info,
-  Lock,
-  Layers,
-  Sparkles,
   SlidersHorizontal,
   ChevronDown,
   ChevronUp,
@@ -25,7 +22,6 @@ export default function ExperimentWorkflowPage() {
     session,
     scenarios,
     scenariosLoading,
-    scenariosError,
     grantConsent,
     selectScenario,
     setDynamicSpecification,
@@ -37,7 +33,12 @@ export default function ExperimentWorkflowPage() {
   const [hasConsented, setHasConsented] = useState(session.consentGiven);
   const [showLegacyMode, setShowLegacyMode] = useState(false);
 
+  useEffect(() => {
+    setHasConsented(session.consentGiven);
+  }, [session.consentGiven]);
+
   const activeCategoryObj = getCategoryById(session.category);
+  const isSpecificTask = session.searchType === 'specific';
   const currentPool =
     session.searchType === 'general' ? scenarios.general : scenarios.specific;
   const filteredScenarios = currentPool.filter((s) => s.category === session.category);
@@ -45,12 +46,12 @@ export default function ExperimentWorkflowPage() {
   const handleConsentSubmit = async () => {
     await grantConsent();
     setHasConsented(true);
-    showToast('Informed consent acknowledged. Participant session registered.', 'success');
+    showToast('Consent recorded. You can begin the study.', 'success');
   };
 
   const handleConfirmSpecification = (specs) => {
     setDynamicSpecification(specs);
-    showToast('Product specifications locked. Proceeding to query formulation...', 'success');
+    showToast('Requirements saved. Proceeding to query entry.', 'success');
     navigate('/query');
   };
 
@@ -64,12 +65,12 @@ export default function ExperimentWorkflowPage() {
 
   const handleSelectScenario = (scenario) => {
     selectScenario(scenario);
-    showToast(`Predefined scenario selected (${activeCategoryObj.name}).`, 'info');
+    showToast(`Scenario selected (${getCategoryById(scenario.category).name}).`, 'info');
   };
 
   const handleProceedWithScenario = () => {
     if (!session.activeScenario) {
-      showToast('Please select a task scenario first.', 'error');
+      showToast('Please wait for the target product to load.', 'error');
       return;
     }
     navigate('/query');
@@ -96,7 +97,7 @@ export default function ExperimentWorkflowPage() {
 
           <div className="prose prose-slate text-sm text-slate-600 leading-relaxed space-y-3 pt-2 border-t border-slate-100">
             <p>
-              You are invited to take part in an academic research experiment evaluating product discovery and stockout recovery algorithms in e-commerce search.
+              You are invited to take part in an academic research study evaluating product discovery and search result rankings in online shopping.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-4 font-normal">
@@ -106,7 +107,7 @@ export default function ExperimentWorkflowPage() {
                   <span>Anonymous Session</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  You are identified only by a randomized session ID ({session.sessionId}). We do NOT collect names, email addresses, student IDs, or IP addresses.
+                  You are identified only by a randomized session ID ({session.sessionId}). The study application does not store names, email addresses, student IDs, or IP addresses in the experiment database.
                 </p>
               </div>
 
@@ -116,7 +117,7 @@ export default function ExperimentWorkflowPage() {
                   <span>Duration &amp; Procedure</span>
                 </div>
                 <p className="text-xs text-slate-500">
-                  Takes approximately 5–8 minutes. You will define product requirements, formulate a natural search query, inspect 3 blinded search systems, and complete a feedback survey.
+                  Takes approximately 5–8 minutes. You will review or choose a product target, write a search query in your own words, compare three search experiences, and complete a short questionnaire.
                 </p>
               </div>
             </div>
@@ -124,26 +125,19 @@ export default function ExperimentWorkflowPage() {
             <div className="space-y-2 text-xs text-slate-600">
               <div className="font-semibold text-slate-800 text-sm">What will be recorded:</div>
               <ul className="list-disc list-inside space-y-1 pl-1">
-                <li>Your chosen category and target requirements (budget, RAM, storage, screen size, color, brand).</li>
-                <li>The natural language query you formulate.</li>
-                <li>The retrieved ranking positions of catalog items across the three search systems.</li>
-                <li>Your subjective questionnaire responses (relevance, diversity, satisfaction, confidence).</li>
+                <li>Your assigned product task or selected requirements.</li>
+                <li>The search query you write in your own words.</li>
+                <li>The retrieved product rankings across the three search experiences.</li>
+                <li>Your ratings and questionnaire responses.</li>
               </ul>
             </div>
 
             <p className="text-xs text-slate-500 pt-1">
-              <strong>Voluntary Participation:</strong> Your participation is completely voluntary. You may decline or stop at any time by closing this tab or clicking Reset Session.
+              <strong>Voluntary Participation:</strong> Your participation is completely voluntary. You may decline or stop at any time by closing this tab or resetting your session.
             </p>
           </div>
 
-          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <Link
-              to="/"
-              className="text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
-            >
-              ← Return to Project Overview
-            </Link>
-
+          <div className="pt-4 border-t border-slate-100 flex items-center justify-end">
             <button
               type="button"
               onClick={handleConsentSubmit}
@@ -158,23 +152,41 @@ export default function ExperimentWorkflowPage() {
     );
   }
 
-  // STEP 2: Main Dynamic Product Specification Builder Screen
+  // STEP 2: Task Setup Screen (Specific Product Search Task OR General Product Requirements Task)
   return (
     <div className="w-full max-w-[1360px] mx-auto px-4 sm:px-8 py-8 flex flex-col gap-8">
+      <StageInstructionModal
+        sessionId={session.sessionId}
+        stageKey="setup"
+        title="What to do"
+        message={
+          isSpecificTask
+            ? 'Review the product you have been asked to find. On the next screen, write the search query you would normally use to look for this product.'
+            : 'Choose the type of product and the specifications you would be looking to buy. On the next screen, you’ll write a search query just as you would on a shopping website like Amazon.'
+        }
+      />
+
       {/* Step Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-slate-200/80">
         <div>
           <div className="flex items-center gap-2 text-xs font-mono text-primary font-bold uppercase tracking-wider mb-1">
             <span>Stage 01</span>
             <span>·</span>
-            <span>Product Specification Builder</span>
+            <span>
+              {isSpecificTask
+                ? 'Specific Product Search Task'
+                : 'General Product Requirements Task'}
+            </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
-            Define Your Target Product Specifications
+            {isSpecificTask
+              ? 'Specific Product Search Task'
+              : 'General Product Requirements Task'}
           </h1>
           <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-            Choose a product domain and customize your requirements (budget, specs, colors, brands).
-            These specifications will serve as your hidden reference target while you formulate a natural query.
+            {isSpecificTask
+              ? 'You will be shown a target product and asked to search for it in your own words.'
+              : 'Choose the type of product and specifications you would be looking to buy, then search for it in your own words.'}
           </p>
         </div>
 
@@ -184,11 +196,71 @@ export default function ExperimentWorkflowPage() {
         </div>
       </div>
 
-      {/* Primary: Dynamic Specification Builder */}
-      <ProductSpecificationBuilder
-        initialCategory={session.category || 'laptop'}
-        onConfirmSpecification={handleConfirmSpecification}
-      />
+      {/* Task Body: Specific Target Review OR General Specification Builder */}
+      {isSpecificTask ? (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-slate-100">
+            <div className="w-11 h-11 rounded-2xl bg-blue-50 text-primary flex items-center justify-center border border-blue-100 shrink-0">
+              <CategoryIcon category={session.category} size={22} />
+            </div>
+            <div>
+              <div className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
+                Assigned Target Product
+              </div>
+              <div className="text-xs text-slate-500 font-mono capitalize mt-0.5">
+                Category: {activeCategoryObj?.name || session.category}
+              </div>
+            </div>
+          </div>
+
+          {session.activeScenario ? (
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="text-xs font-mono uppercase text-slate-500 font-bold">
+                Product to Search For:
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+                {session.activeScenario.target_product_title}
+              </h2>
+              {session.activeScenario.target_brand && (
+                <div className="text-xs font-mono text-slate-600">
+                  Brand:{' '}
+                  <strong className="text-slate-900">
+                    {session.activeScenario.target_brand}
+                  </strong>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200 text-center text-xs text-slate-500">
+              Loading your assigned product target...
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+            <div className="text-xs text-slate-500 flex items-center gap-1.5">
+              <Info size={14} className="text-primary shrink-0" />
+              <span>
+                Review the product details above, then continue to write your own search query.
+              </span>
+            </div>
+
+            <button
+              type="button"
+              disabled={!session.activeScenario}
+              onClick={handleProceedWithScenario}
+              className="px-7 py-3.5 rounded-xl bg-primary hover:bg-blue-800 disabled:opacity-50 text-white font-semibold text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 shrink-0"
+            >
+              <span>Continue to Search Query</span>
+              <ArrowRight size={16} />
+            </button>
+          </div>
+        </div>
+      ) : (
+        <ProductSpecificationBuilder
+          initialCategory={session.category || 'laptop'}
+          onConfirmSpecification={handleConfirmSpecification}
+        />
+      )}
 
       {/* Secondary / Advanced: Researcher Predefined Scenario Calibration (Collapsible) */}
       <div className="mt-4 pt-6 border-t border-slate-200">
@@ -221,7 +293,7 @@ export default function ExperimentWorkflowPage() {
                   Predefined Benchmark Scenario Library
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Controlled tasks from the research paper evaluation suite.
+                  Controlled tasks from the evaluation suite.
                 </p>
               </div>
               <div className="text-xs font-mono text-slate-400">
@@ -308,7 +380,9 @@ export default function ExperimentWorkflowPage() {
                         {isSelected && <span className="text-primary font-bold">Selected</span>}
                       </div>
                       <div className="font-semibold text-xs text-slate-900 mt-1 line-clamp-2">
-                        {sc.search_type === 'specific' ? sc.target_product_title : sc.description || `Constraint Task ${sc.id}`}
+                        {sc.search_type === 'specific'
+                          ? sc.target_product_title
+                          : sc.description || `Constraint Task ${sc.id}`}
                       </div>
                     </div>
                   );

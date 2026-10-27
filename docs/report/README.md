@@ -38,22 +38,19 @@ docs/report/
 
 ---
 
-## 2. Editable Placeholders on the Title & Certificate Pages
+## 2. Editable Title & Certificate Fields
 
-To ensure zero fabrication of personal or institutional credentials, the Title Page (Page 1) and Bonafide Certificate (Page 2) of `Mini_Project_Report.docx` contain clearly marked bracketed placeholders:
+The Title Page (Page 1) and Bonafide Certificate (Page 2) of `Mini_Project_Report.docx` contain bracketed fields for student, guide, and institutional details:
 
-- `[STUDENT NAME PLACEHOLDER — EDIT BEFORE SUBMISSION]`
-- `[REGISTRATION NUMBER PLACEHOLDER — EDIT BEFORE SUBMISSION]`
-- `[SEMESTER / SECTION PLACEHOLDER — EDIT BEFORE SUBMISSION]`
-- `[FACULTY GUIDE NAME PLACEHOLDER, DESIGNATION]`
-- `[HOD NAME PLACEHOLDER]`
-- `[INSTITUTION / UNIVERSITY NAME PLACEHOLDER]`
-- `[CITY, STATE, PIN CODE — PLACEHOLDER]`
-- `ACADEMIC YEAR: [2025 – 2026]`
-- `DATE OF SUBMISSION: [MONTH YEAR]`
+- Student Name and Registration Number
+- Semester / Section
+- Faculty Guide Name and Designation
+- Head of Department Name
+- Institution / University Name and Location
+- Academic Year (`2025 – 2026`) and Date of Submission
 
-### How to Update Placeholders and Re-Export PDF
+### Updating Title Fields and Re-Exporting PDF
 1. Open `Mini_Project_Report.docx` in Microsoft Word.
-2. Edit the bracketed placeholders on Pages 1 and 2 with your actual details.
+2. Update the bracketed fields on Pages 1 and 2 with your institutional details.
 3. Right-click the **Table of Contents** on Page 4 and select **Update Field -> Update entire table** (if pagination changes).
 4. Choose **File -> Save As -> PDF (`Mini_Project_Report.pdf`)**.

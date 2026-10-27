@@ -18,7 +18,7 @@ This project implements and empirically validates three search pipelines:
 The platform includes:
 - A modern e-commerce discovery website with live search across 1,145 catalog products in 4 categories (`laptop`, `phone`, `watch`, `refrigerator`).
 - A controlled, double-blind human-evaluation workflow adhering to strict research integrity (zero target leakage into retrieval, randomized column blinding).
-- SQLite-backed persistence for 9-point Likert questionnaire responses with duplicate-submission protection.
+- SQLite-backed persistence for 5-point Likert questionnaire responses with duplicate-submission protection.
 - A live researcher dashboard with interactive decision-trace inspection and one-click research CSV export.
 
 ---
@@ -100,7 +100,7 @@ adaptive-ecommerce-orchestration/
 │   └── start-all.sh               # Bash startup script (Linux/macOS)
 │
 └── docs/                          # Academic documentation
-    └── ModelInfo.md               # Research model methodology and benchmark report
+    └── report/                  # Project report documentation, figures, and screenshots
 ```
 
 ---
@@ -217,7 +217,7 @@ All 12 automated test suites verify:
 - Catalog SKU integrity and category isolation across all 4 domains.
 - Structured constraint parsing and contradiction detection.
 - **Zero ground-truth target leakage**: verifying that target product IDs are never passed into retrieval.
-- Synchronous column shuffling with preserved blinded condition mappings.
+- Fixed per-session column blinding with preserved condition mappings.
 - Session persistence and duplicate-submission protection.
 
 ### B. Run Backend Diagnostic Tests
@@ -253,7 +253,7 @@ backend/data/experiments.db
 The database schema includes:
 - `experiment_sessions`: Tracks anonymous session IDs (`SL-2026-XXXX`), informed consent timestamps, and completion statuses.
 - `experiment_tasks`: Records individual query trials, hidden evaluation targets, and retrieved result rankings.
-- `experiment_submissions`: Persists validated 9-dimension Likert scores (1-7 scale), system preference, and comments.
+- `experiment_submissions`: Persists validated 9-dimension Likert scores (5-point Likert scale), per-system ratings, system preference, and comments.
 
 ### One-Click CSV Export
 Researchers can download the complete research-ready dataset at any time via:

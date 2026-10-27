@@ -28,8 +28,8 @@ export default function WelcomePage() {
     navigate(`/discover?category=${catId}`);
   };
 
-  const handleStartExperiment = (taskType = 'specific') => {
-    setSearchType(taskType);
+  const handleStartExperiment = (taskType = null) => {
+    if (taskType) setSearchType(taskType);
     navigate('/experiment');
   };
 
@@ -64,7 +64,7 @@ export default function WelcomePage() {
             <div className="flex flex-wrap items-center gap-3 pt-2">
               <button
                 type="button"
-                onClick={() => handleStartExperiment('specific')}
+                onClick={() => handleStartExperiment()}
                 className="px-6 py-3.5 rounded-xl bg-primary hover:bg-blue-800 text-white font-semibold text-sm shadow-md hover:shadow-lg transition-all flex items-center gap-2 group active:scale-[0.99]"
               >
                 <FlaskConical size={18} />
@@ -271,7 +271,7 @@ export default function WelcomePage() {
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 size={14} className="text-emerald-600" />
-                    <span>100% partner-available recovery at Rank #1</span>
+                    <span>6/6 controlled partner-available stockouts recovered at Rank #1</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <CheckCircle2 size={14} className="text-emerald-600" />

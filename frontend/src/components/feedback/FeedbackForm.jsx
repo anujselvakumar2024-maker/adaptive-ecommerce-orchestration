@@ -178,13 +178,13 @@ export default function FeedbackForm({
               Comparative Ratings Across All Three Search Experiences
             </h2>
             <p className="font-body-md text-body-md text-on-surface-variant">
-              Rate each experimental engine variant independently across our four empirical
-              satisfaction indices (Scale: 1 = Lowest, 5 = Highest).
+              Rate each search experience independently across four evaluation
+              questions (Scale: 1 = Lowest, 5 = Highest).
             </p>
           </div>
           <div className="hidden lg:flex items-center gap-4 px-3 py-1.5 rounded-lg bg-surface-container-low font-mono-data text-label-sm text-on-surface-variant">
             <span>Score Legend:</span>
-            <span className="text-primary font-semibold">1 (Poor) → 5 (Flawless)</span>
+            <span className="text-primary font-semibold">1 (Lowest) → 5 (Highest)</span>
           </div>
         </div>
 
@@ -193,11 +193,11 @@ export default function FeedbackForm({
             <RatingControl
               key={col.shortCode}
               columnSlot={col}
-              ratings={feedback.ratings[col.conditionId]}
+              ratings={(feedback.condition_ratings || feedback.ratings)?.[col.conditionId]}
               onRateMetric={onRateCondition}
               blindedMode={blindedMode}
-              targetRank={col.data?.metrics?.targetRank}
-              attributeMatchRate={col.data?.metrics?.attributeMatchRate}
+
+
             />
           ))}
         </div>
@@ -298,7 +298,7 @@ export default function FeedbackForm({
           </div>
           <div>
             <div className="font-label-lg text-label-lg text-on-surface font-semibold">
-              Institutional Review Board Compliance
+              Anonymous Study Response
             </div>
             <p className="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
               Responses are recorded anonymously under Participant Session {session.sessionId}. Data

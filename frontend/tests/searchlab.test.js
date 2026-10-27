@@ -1,5 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { MOCK_PRODUCTS, formatINR, getProductsByCategory, getProductById } from '../src/data/mockProducts.js';
 import { CATEGORIES, getCategoryById } from '../src/data/categories.js';
 import {
@@ -14,6 +17,10 @@ import {
   sessionReducer,
   createInitialSessionState,
   createAssignment,
+  ALL_PERMUTATIONS,
+  CONDITION_RATING_KEYS,
+  assignParticipantTaskType,
+  pickRandomSpecificScenario,
   loadSavedState,
   STORAGE_KEY,
 } from '../src/hooks/useExperimentSession.js';
@@ -28,6 +35,9 @@ import {
   getExperimentCsvExportUrl,
   checkBackendHealth,
 } from '../src/services/api.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 test('Catalog integrity & duplicate SKU check: all products have unique IDs, unique SKUs, and valid categories', () => {
   assert.ok(MOCK_PRODUCTS.length >= 16, 'Catalog should contain realistic sample items');
@@ -280,62 +290,139 @@ test('Three search conditions operate as distinct service interfaces and rank ta
   );
 });
 
-test('Randomized/blinded column presentation preserves accurate conditionId mapping and updates synchronously on shuffle', async () => {
-  const target = getProductById('ref-sam-458');
-  const query = 'Find me a reliable white refrigerator for a small family within my budget';
+test('Fixed per-session column blinding covers all 6 permutations, preserves assignment across reloads, and exposes no participant shuffle button', async () => {
+  assert.equal(ALL_PERMUTATIONS.length, 6, 'Must define all 6 permutations of the 3 conditions');
 
-  // Verify createAssignment(true) always produces a non-identity permutation of the 3 conditions
-  for (let i = 0; i < 15; i++) {
-    const shuffled = createAssignment(true);
-    assert.equal(shuffled.randomized, true);
-    const ids = shuffled.columns.map((c) => c.conditionId).sort();
-    assert.deepEqual(ids, ['baseline', 'optimized', 'orchestrated']);
-    const isIdentity =
-      shuffled.columns[0].conditionId === 'baseline' &&
-      shuffled.columns[1].conditionId === 'optimized' &&
-      shuffled.columns[2].conditionId === 'orchestrated';
-    assert.equal(isIdentity, false, 'Shuffled assignment should permute column order');
+  const observedPermutations = new Set();
+  for (let i = 0; i < 6; i++) {
+    const assignment = createAssignment(true, () => (i + 0.1) / 6);
+    assert.equal(assignment.randomized, true);
+    const ids = assignment.columns.map((c) => c.conditionId);
+    assert.deepEqual([...ids].sort(), ['baseline', 'optimized', 'orchestrated']);
+    observedPermutations.add(ids.join(','));
   }
+  assert.equal(observedPermutations.size, 6, 'All 6 permutations in ALL_PERMUTATIONS must be reachable');
 
-  // Verify sessionReducer updates searchResults.orderedColumns synchronously on SHUFFLE_CONDITION_ASSIGNMENT
+  // Verify session state preserves the same experimentAssignment across reload without reshuffling
+  const sessionStore = new Map();
+  globalThis.window = {
+    sessionStorage: {
+      getItem: (k) => (sessionStore.has(k) ? sessionStore.get(k) : null),
+      setItem: (k, v) => sessionStore.set(k, String(v)),
+      removeItem: (k) => sessionStore.delete(k),
+    },
+    localStorage: {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    },
+  };
+
   let state = createInitialSessionState();
-  const results = await executeThreeWayComparison({
-    query,
-    category: state.category,
-    targetProduct: target,
-    selectedAttributes: state.selectedAttributes,
-    experimentAssignment: state.experimentAssignment,
-    searchType: state.searchType,
-  });
+  const originalColumns = state.experimentAssignment.columns.map((c) => c.conditionId);
+  window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 
-  state = sessionReducer(state, {
-    type: 'SET_SEARCH_RESULTS',
-    payload: results,
-  });
+  const reloaded = loadSavedState();
+  assert.deepEqual(
+    reloaded.experimentAssignment.columns.map((c) => c.conditionId),
+    originalColumns,
+    'experimentAssignment must remain fixed across session reloads'
+  );
 
-  // Rate 'orchestrated' before shuffling
-  state = sessionReducer(state, {
-    type: 'UPDATE_CONDITION_RATING',
-    payload: { conditionId: 'orchestrated', metricKey: 'overallSatisfaction', value: 5 },
-  });
-
-  // Trigger shuffle
-  state = sessionReducer(state, {
-    type: 'SHUFFLE_CONDITION_ASSIGNMENT',
-    payload: true,
-  });
-
-  // Verify orderedColumns immediately matches new experimentAssignment and points to right condition data
-  for (let idx = 0; idx < 3; idx++) {
-    const assignedSlot = state.experimentAssignment.columns[idx];
-    const displayedCol = state.searchResults.orderedColumns[idx];
-    assert.equal(displayedCol.conditionId, assignedSlot.conditionId);
-    assert.equal(displayedCol.displayLabel, assignedSlot.displayLabel);
-    assert.equal(displayedCol.data.conditionId, assignedSlot.conditionId);
+  // Verify per-system ratings store all 4 required dimensions under both condition_ratings and ratings
+  for (const condId of ['baseline', 'optimized', 'orchestrated']) {
+    for (const metricKey of CONDITION_RATING_KEYS) {
+      state = sessionReducer(state, {
+        type: 'UPDATE_CONDITION_RATING',
+        payload: { conditionId: condId, metricKey, value: 4 },
+      });
+      assert.equal(state.feedback.condition_ratings[condId][metricKey], 4);
+      assert.equal(state.feedback.ratings[condId][metricKey], 4);
+    }
   }
 
-  // Verify rating remains tied to 'orchestrated' internal condition ID regardless of column position
-  assert.equal(state.feedback.ratings.orchestrated.overallSatisfaction, 5);
+  // Verify ComparisonPage.jsx has no participant-facing Randomize Columns control
+  const comparisonSource = fs.readFileSync(
+    path.join(__dirname, '../src/pages/ComparisonPage.jsx'),
+    'utf8'
+  );
+  assert.equal(
+    comparisonSource.includes('Randomize Columns'),
+    false,
+    'ComparisonPage.jsx must not render a Randomize Columns button'
+  );
+
+  delete globalThis.window;
+});
+
+test('Participant task assignment supports 50/50 specific vs general tasks, never prefills reference_query, and preserves 5-point Likert wording', () => {
+  // 1. 50/50 assignment function can produce both specific and general
+  assert.equal(assignParticipantTaskType(() => 0.2), 'specific');
+  assert.equal(assignParticipantTaskType(() => 0.8), 'general');
+
+  // 2. Specific session starts with empty userQuery, valid activeScenario with target_product_title, and never prefills reference_query
+  const specificState = createInitialSessionState({ taskType: 'specific' });
+  assert.equal(specificState.searchType, 'specific');
+  assert.equal(specificState.userQuery, '', 'Specific task must start with an empty userQuery');
+  assert.ok(specificState.activeScenario, 'Specific task must have an activeScenario');
+  assert.ok(
+    specificState.activeScenario.target_product_title,
+    'Specific task activeScenario must include target_product_title'
+  );
+
+  const selectedScenarioState = sessionReducer(specificState, {
+    type: 'SELECT_SCENARIO',
+    payload: {
+      id: 'spec_test_1',
+      type: 'specific',
+      category: 'phone',
+      title: 'Specific Phone Target',
+      description: 'Find this specific phone',
+      target_product_id: 'B0TEST123',
+      target_product_title: 'Samsung Galaxy S23 Ultra 5G',
+      target_brand: 'Samsung',
+      reference_query: 'samsung galaxy s23 ultra 5g phantom black',
+    },
+  });
+  assert.equal(
+    selectedScenarioState.userQuery,
+    '',
+    'Selecting a specific scenario must never prefill reference_query into userQuery'
+  );
+
+  // 3. General session uses SET_DYNAMIC_SPECIFICATION to create a general hidden target
+  const generalState = createInitialSessionState({ taskType: 'general' });
+  assert.equal(generalState.searchType, 'general');
+  const afterSpec = sessionReducer(generalState, {
+    type: 'SET_DYNAMIC_SPECIFICATION',
+    payload: {
+      category: 'laptop',
+      constraints: { brand: 'Dell', ram_gb: 16, max_price: 85000 },
+      title: 'Custom Laptop Target',
+      description: 'Participants must retrieve a laptop matching: Brand: Dell · 16GB RAM.',
+    },
+  });
+  assert.equal(afterSpec.searchType, 'general');
+  assert.equal(afterSpec.category, 'laptop');
+  assert.deepEqual(afterSpec.hiddenTargetConstraints, { brand: 'Dell', ram_gb: 16, max_price: 85000 });
+  assert.equal(afterSpec.userQuery, '');
+
+  // 4. Verify FeedbackPage.jsx has the updated repeat_purchase_intention question and 1-5 endpoints
+  const feedbackSource = fs.readFileSync(
+    path.join(__dirname, '../src/pages/FeedbackPage.jsx'),
+    'utf8'
+  );
+  assert.ok(
+    feedbackSource.includes(
+      'If you needed another product in the future, how likely would you be to make another purchase through this platform?'
+    ),
+    'FeedbackPage.jsx must include the exact repeat_purchase_intention question'
+  );
+  assert.ok(
+    feedbackSource.includes("lowLabel: '1 — Very Unlikely'") &&
+      feedbackSource.includes("highLabel: '5 — Very Likely'"),
+    'FeedbackPage.jsx must use 1 — Very Unlikely and 5 — Very Likely endpoints for repeat_purchase_intention'
+  );
 });
 
 test('Session state persistence, cross-category target selection, and full session reset work cleanly', () => {
@@ -355,8 +442,8 @@ test('Session state persistence, cross-category target selection, and full sessi
     },
   };
 
-  let state = createInitialSessionState();
-  // Select a laptop from Specific Product catalog while category was 'refrigerator'
+  let state = createInitialSessionState({ taskType: 'specific' });
+  // Select a laptop from Specific Product catalog
   const macbook = getProductById('lap-apl-mba15');
   state = sessionReducer(state, {
     type: 'SET_TARGET_PRODUCT',
@@ -370,19 +457,23 @@ test('Session state persistence, cross-category target selection, and full sessi
     'Selected attributes should sync to laptop defaults when switching category via product selection'
   );
 
+  // Grant consent and verify task type is preserved
+  state = sessionReducer(state, { type: 'GRANT_CONSENT' });
+  assert.equal(state.searchType, 'specific');
+
   // Persist to sessionStorage and reload
   window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   const reloaded = loadSavedState();
   assert.equal(reloaded.selectedTargetProduct.id, 'lap-apl-mba15');
   assert.equal(reloaded.category, 'laptop');
+  assert.equal(reloaded.searchType, 'specific');
 
   // Reset session and confirm fresh state
   const resetState = sessionReducer(reloaded, {
     type: 'RESET_SESSION',
     payload: { preserveDefaultId: false },
   });
-  assert.equal(resetState.category, 'refrigerator');
-  assert.equal(resetState.selectedTargetProduct.id, 'ref-sam-458');
+  assert.ok(['specific', 'general'].includes(resetState.searchType));
   assert.equal(resetState.userQuery, '');
   assert.equal(resetState.searchResults, null);
   assert.notEqual(resetState.sessionId, '#SL-8821');
@@ -390,7 +481,7 @@ test('Session state persistence, cross-category target selection, and full sessi
   delete globalThis.window;
 });
 
-test('Feedback submission adapter stores records in localStorage in demo mode and returns structured acknowledgment', async () => {
+test('Feedback submission adapter stores records in localStorage in demo mode without fabricating missing ratings', async () => {
   const localStore = new Map();
   globalThis.window = {
     localStorage: {
@@ -418,7 +509,6 @@ test('Feedback submission adapter stores records in localStorage in demo mode an
 
   delete globalThis.window;
 });
-
 
 test('API base URL resolution uses Render in production, localhost in development, and preserves baseUrl on health checks', async () => {
   assert.equal(

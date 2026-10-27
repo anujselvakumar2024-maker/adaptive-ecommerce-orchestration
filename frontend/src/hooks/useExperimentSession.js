@@ -20,7 +20,7 @@ import {
 
 export const STORAGE_KEY = 'searchlab_experiment_session_v3';
 
-const ALL_PERMUTATIONS = [
+export const ALL_PERMUTATIONS = [
   ['baseline', 'optimized', 'orchestrated'],
   ['baseline', 'orchestrated', 'optimized'],
   ['optimized', 'baseline', 'orchestrated'],
@@ -29,10 +29,161 @@ const ALL_PERMUTATIONS = [
   ['orchestrated', 'optimized', 'baseline'],
 ];
 
-export function createAssignment(randomize = true) {
-  const nonIdentity = ALL_PERMUTATIONS.slice(1);
+export const CONDITION_RATING_KEYS = [
+  'overallSatisfaction',
+  'perceivedRelevance',
+  'easeOfFinding',
+  'returnIntention',
+];
+
+const LIKERT_FIELD_KEYS = [
+  'overall_satisfaction',
+  'perceived_relevance',
+  'ease_of_finding',
+  'perceived_usefulness',
+  'perceived_diversity',
+  'product_confidence',
+  'purchase_intention',
+  'return_intention',
+  'repeat_purchase_intention',
+];
+
+const FALLBACK_SPECIFIC_SCENARIOS = [
+  {
+    id: 'phone_normal',
+    search_type: 'specific',
+    category: 'phone',
+    scenario_type: 'normal',
+    target_product_id: 'B079MBRDNN',
+    target_product_title:
+      'NUU Mobile G3-64GB/4GB RAM - 13MP+5MP Rear Camera, 13MP Front Selfie Camera - Dual-SIM 4G LTE Unlocked Cell Phone- Blue-One-Year US Warranty',
+    target_brand: 'NUU',
+  },
+  {
+    id: 'phone_partner_recovery',
+    search_type: 'specific',
+    category: 'phone',
+    scenario_type: 'partner_recovery',
+    target_product_id: 'B07KCHYJ8H',
+    target_product_title:
+      'NUU Mobile G3 Plus Unlocked Cell Phone 64GB + 4GB RAM 4000 mAh Battery - 5.7" Android 8.1 Oreo Smartphone - Onyx Black',
+    target_brand: 'NUU',
+  },
+  {
+    id: 'phone_substitute_only',
+    search_type: 'specific',
+    category: 'phone',
+    scenario_type: 'substitute_only',
+    target_product_id: 'B07VQMRB6S',
+    target_product_title:
+      'NUU Mobile A6L-G Unlocked 5.0" Single SIM 4G LTE GSM Android Smartphone',
+    target_brand: 'NUU',
+  },
+  {
+    id: 'laptop_normal',
+    search_type: 'specific',
+    category: 'laptop',
+    scenario_type: 'normal',
+    target_product_id: 'B087YVDX4L',
+    target_product_title:
+      'HP High Performance 15.6" Touch-Screen Laptop (15-EF0023dx) AMD Ryzen 5 3500U 12GB Memory 256GB SSD - Natural Silver',
+    target_brand: 'HP',
+  },
+  {
+    id: 'laptop_partner_recovery',
+    search_type: 'specific',
+    category: 'laptop',
+    scenario_type: 'partner_recovery',
+    target_product_id: 'B083CYM3TZ',
+    target_product_title:
+      '2020 HP Pavilion Newest 14 Inch Laptop, 10th Gen Intel 4-Core i5-1035G1 up to 3.6GHz, Intel UHD Graphics, 8GB DDR4 RAM, 256GB SSD, WiFi, Bluetooth, HDMI, Webcam, Windows 10 Home, Gold',
+    target_brand: 'HP',
+  },
+  {
+    id: 'laptop_substitute_only',
+    search_type: 'specific',
+    category: 'laptop',
+    scenario_type: 'substitute_only',
+    target_product_id: 'B07BBKK2JJ',
+    target_product_title:
+      'Lenovo ThinkPad P52s 20LB0028US Laptop (Windows 10 Pro, Intel Core i7-8550U, 15.6" LED-Lit Screen, Storage: 512 GB, RAM: 16 GB) Black',
+    target_brand: 'Lenovo',
+  },
+  {
+    id: 'watch_normal',
+    search_type: 'specific',
+    category: 'watch',
+    scenario_type: 'normal',
+    target_product_id: 'B076KDX36S',
+    target_product_title:
+      "GUESS Women's Stainless Steel Android Wear Touch Screen Silicone Smart Watch, Color: Blue (Model: C1002M2)",
+    target_brand: 'GUESS',
+  },
+  {
+    id: 'watch_partner_recovery',
+    search_type: 'specific',
+    category: 'watch',
+    scenario_type: 'partner_recovery',
+    target_product_id: 'B07W7YBBVQ',
+    target_product_title:
+      'Amazfit GTS Fitness Smartwatch with Heart Rate Monitor, 14-Day Battery Life, Music Control, 1.65" Display, Sleep and Swim Tracking, GPS, Water Resistant, Smart Notifications, Desert Gold',
+    target_brand: 'Amazfit',
+  },
+  {
+    id: 'watch_substitute_only',
+    search_type: 'specific',
+    category: 'watch',
+    scenario_type: 'substitute_only',
+    target_product_id: 'B08CML75PC',
+    target_product_title:
+      'Fitness Tracker Watch Smart Watch for Android Phones Fitness Watches for Men Women Sports Activity Tracker Smartwatch Compatible with iOS with Pedometer with Heart Rate',
+    target_brand: 'BAUISAN',
+  },
+  {
+    id: 'refrigerator_normal',
+    search_type: 'specific',
+    category: 'refrigerator',
+    scenario_type: 'normal',
+    target_product_id: 'B06XW9JS57',
+    target_product_title:
+      'SMETA 12V Volt Refrigerator 110V Compact Refrigerator Freightliner Cascadia Refrigerator Semi Truck Mini Fridge Upright Freezers RV Can Cooler Camper, 36 qt',
+    target_brand: 'SMETA',
+  },
+  {
+    id: 'refrigerator_partner_recovery',
+    search_type: 'specific',
+    category: 'refrigerator',
+    scenario_type: 'partner_recovery',
+    target_product_id: 'B00MMRFQR6',
+    target_product_title:
+      'Midea WHS-87LSS1 Refrigerator, 2.4 Cubic Feet, Stainless Steel',
+    target_brand: 'Midea',
+  },
+  {
+    id: 'refrigerator_substitute_only',
+    search_type: 'specific',
+    category: 'refrigerator',
+    scenario_type: 'substitute_only',
+    target_product_id: 'B000WCVV4A',
+    target_product_title: '3.2 Cubic Foot Refrigerator Freezer',
+    target_brand: 'RCA',
+  },
+];
+
+export function assignParticipantTaskType(rng = Math.random) {
+  return rng() < 0.5 ? 'specific' : 'general';
+}
+
+export function pickRandomSpecificScenario(pool = FALLBACK_SPECIFIC_SCENARIOS, rng = Math.random) {
+  const validPool =
+    Array.isArray(pool) && pool.length > 0 ? pool : FALLBACK_SPECIFIC_SCENARIOS;
+  const idx = Math.floor(rng() * validPool.length);
+  return validPool[Math.max(0, Math.min(validPool.length - 1, idx))];
+}
+
+export function createAssignment(randomize = true, rng = Math.random) {
   const ordered = randomize
-    ? nonIdentity[Math.floor(Math.random() * nonIdentity.length)]
+    ? ALL_PERMUTATIONS[Math.floor(rng() * ALL_PERMUTATIONS.length)]
     : ALL_PERMUTATIONS[0];
 
   const labels = ['Search Experience A', 'Search Experience B', 'Search Experience C'];
@@ -99,17 +250,38 @@ function generateSessionId() {
   return `SL-2026-${num}`;
 }
 
-export function createInitialSessionState(customSessionId = null) {
-  const initialCat = 'refrigerator';
+export function createInitialSessionState(optionsOrSessionId = null, initialSearchType = null) {
+  const customSessionId =
+    optionsOrSessionId && typeof optionsOrSessionId === 'object'
+      ? optionsOrSessionId.sessionId || null
+      : optionsOrSessionId;
+  const requestedType =
+    optionsOrSessionId && typeof optionsOrSessionId === 'object'
+      ? optionsOrSessionId.taskType || optionsOrSessionId.searchType || initialSearchType
+      : initialSearchType;
+  const assignedType =
+    requestedType === 'specific' || requestedType === 'general'
+      ? requestedType
+      : assignParticipantTaskType();
+
+  const initialSpecificScenario =
+    assignedType === 'specific' ? pickRandomSpecificScenario() : null;
+  const initialCat = initialSpecificScenario
+    ? normalizeCategoryId(initialSpecificScenario.category)
+    : 'refrigerator';
   const catObj = getCategoryById(initialCat);
+
   return {
     sessionId: customSessionId || generateSessionId(),
     consentGiven: false,
     consentTimestamp: null,
-    searchType: 'specific', // 'specific' | 'general'
+    taskTypeAssigned: true,
+    searchType: assignedType, // 'specific' | 'general'
     category: initialCat, // 'phone' | 'laptop' | 'watch' | 'refrigerator'
-    activeScenario: null, // Loaded from GET /scenarios
-    hiddenTargetProductId: 'ref-sam-458', // Private for specific task /evaluate
+    activeScenario: initialSpecificScenario,
+    hiddenTargetProductId: initialSpecificScenario
+      ? initialSpecificScenario.target_product_id
+      : 'ref-sam-458',
     hiddenTargetConstraints: null, // Private for general task /evaluate
     selectedTargetProduct: {
       id: 'ref-sam-458',
@@ -129,6 +301,18 @@ export function createInitialSessionState(customSessionId = null) {
   };
 }
 
+function isValidAssignment(assignment) {
+  if (!assignment || !Array.isArray(assignment.columns) || assignment.columns.length !== 3) {
+    return false;
+  }
+  const ids = assignment.columns.map((c) => c?.conditionId).sort();
+  return (
+    ids[0] === 'baseline' &&
+    ids[1] === 'optimized' &&
+    ids[2] === 'orchestrated'
+  );
+}
+
 export function loadSavedState() {
   try {
     const store =
@@ -142,13 +326,44 @@ export function loadSavedState() {
     if (!raw) return createInitialSessionState();
     const parsed = JSON.parse(raw);
     if (!parsed || !parsed.sessionId) return createInitialSessionState();
+
+    const savedSearchType =
+      parsed.searchType === 'specific' || parsed.searchType === 'general'
+        ? parsed.searchType
+        : assignParticipantTaskType();
+
+    const baseState = createInitialSessionState(parsed.sessionId, savedSearchType);
+    const baseFeedback = createInitialFeedback();
+    const parsedFeedback = parsed.feedback || {};
+    const mergedConditionRatings = {
+      baseline: {
+        ...baseFeedback.condition_ratings.baseline,
+        ...(parsedFeedback.condition_ratings?.baseline || parsedFeedback.ratings?.baseline || {}),
+      },
+      optimized: {
+        ...baseFeedback.condition_ratings.optimized,
+        ...(parsedFeedback.condition_ratings?.optimized || parsedFeedback.ratings?.optimized || {}),
+      },
+      orchestrated: {
+        ...baseFeedback.condition_ratings.orchestrated,
+        ...(parsedFeedback.condition_ratings?.orchestrated || parsedFeedback.ratings?.orchestrated || {}),
+      },
+    };
+
     return {
-      ...createInitialSessionState(),
+      ...baseState,
       ...parsed,
-      category: normalizeCategoryId(parsed.category),
+      searchType: savedSearchType,
+      taskTypeAssigned: true,
+      category: normalizeCategoryId(parsed.category || baseState.category),
+      experimentAssignment: isValidAssignment(parsed.experimentAssignment)
+        ? parsed.experimentAssignment
+        : baseState.experimentAssignment,
       feedback: {
-        ...createInitialFeedback(),
-        ...(parsed.feedback || {}),
+        ...baseFeedback,
+        ...parsedFeedback,
+        condition_ratings: mergedConditionRatings,
+        ratings: mergedConditionRatings,
       },
     };
   } catch {
@@ -159,10 +374,52 @@ export function loadSavedState() {
 export function sessionReducer(state, action) {
   switch (action.type) {
     case 'GRANT_CONSENT': {
+      const payload =
+        action.payload && typeof action.payload === 'object'
+          ? action.payload
+          : { timestamp: action.payload };
+      const timestamp = payload.timestamp || new Date().toISOString();
+      const lockedSearchType =
+        state.taskTypeAssigned &&
+        (state.searchType === 'specific' || state.searchType === 'general')
+          ? state.searchType
+          : payload.searchType === 'specific' || payload.searchType === 'general'
+          ? payload.searchType
+          : assignParticipantTaskType();
+
+      let nextScenario = state.activeScenario;
+      let nextCategory = state.category;
+      let nextHiddenTargetId = state.hiddenTargetProductId;
+      let nextHiddenConstraints = state.hiddenTargetConstraints;
+
+      if (lockedSearchType === 'specific') {
+        if (!nextScenario || nextScenario.search_type !== 'specific') {
+          const pool =
+            Array.isArray(payload.specificPool) && payload.specificPool.length > 0
+              ? payload.specificPool
+              : FALLBACK_SPECIFIC_SCENARIOS;
+          nextScenario = pickRandomSpecificScenario(pool);
+        }
+        nextCategory = normalizeCategoryId(nextScenario.category);
+        nextHiddenTargetId = nextScenario.target_product_id || null;
+        nextHiddenConstraints = null;
+      } else if (lockedSearchType === 'general') {
+        if (nextScenario && nextScenario.search_type === 'specific') {
+          nextScenario = null;
+          nextHiddenTargetId = null;
+        }
+      }
+
       return {
         ...state,
         consentGiven: true,
-        consentTimestamp: action.payload || new Date().toISOString(),
+        consentTimestamp: timestamp,
+        taskTypeAssigned: true,
+        searchType: lockedSearchType,
+        category: nextCategory,
+        activeScenario: nextScenario,
+        hiddenTargetProductId: nextHiddenTargetId,
+        hiddenTargetConstraints: nextHiddenConstraints,
       };
     }
 
@@ -176,6 +433,7 @@ export function sessionReducer(state, action) {
       return {
         ...state,
         searchType: nextSearchType,
+        taskTypeAssigned: true,
         category: nextCategory,
         activeScenario: scenario,
         hiddenTargetProductId:
@@ -193,22 +451,25 @@ export function sessionReducer(state, action) {
     case 'SET_DYNAMIC_SPECIFICATION': {
       const spec = action.payload || {};
       const cat = normalizeCategoryId(spec.category || state.category);
+      const targetConstraints =
+        spec.constraints && typeof spec.constraints === 'object' ? spec.constraints : spec;
       const scenarioId = `dynamic_spec_${cat}_${Date.now()}`;
       const dynamicScenario = {
         id: scenarioId,
         search_type: 'general',
         category: cat,
-        target_constraints: spec,
-        title: `Custom ${cat.charAt(0).toUpperCase() + cat.slice(1)} Specification`,
+        target_constraints: targetConstraints,
+        title: spec.title || `Custom ${cat.charAt(0).toUpperCase() + cat.slice(1)} Specification`,
         isDynamic: true,
       };
 
       return {
         ...state,
         searchType: 'general',
+        taskTypeAssigned: true,
         category: cat,
         activeScenario: dynamicScenario,
-        hiddenTargetConstraints: spec,
+        hiddenTargetConstraints: targetConstraints,
         hiddenTargetProductId: null,
         userQuery: '',
         searchResults: null,
@@ -220,11 +481,18 @@ export function sessionReducer(state, action) {
     case 'SET_SEARCH_TYPE': {
       const nextType = action.payload === 'general' ? 'general' : 'specific';
       if (nextType === state.searchType) return state;
+      const nextScenario =
+        nextType === 'specific' ? pickRandomSpecificScenario() : null;
+      const nextCat = nextScenario
+        ? normalizeCategoryId(nextScenario.category)
+        : state.category;
       return {
         ...state,
         searchType: nextType,
-        activeScenario: null,
-        hiddenTargetProductId: null,
+        taskTypeAssigned: true,
+        category: nextCat,
+        activeScenario: nextScenario,
+        hiddenTargetProductId: nextScenario ? nextScenario.target_product_id : null,
         hiddenTargetConstraints: null,
         userQuery: '',
         searchResults: null,
@@ -268,25 +536,6 @@ export function sessionReducer(state, action) {
       };
     }
 
-    case 'SHUFFLE_CONDITION_ASSIGNMENT': {
-      const nextAssignment = createAssignment(Boolean(action.payload));
-      const updatedSearchResults = state.searchResults
-        ? {
-            ...state.searchResults,
-            orderedColumns: nextAssignment.columns.map((slot) => ({
-              ...slot,
-              data: state.searchResults.byCondition[slot.conditionId],
-            })),
-          }
-        : null;
-
-      return {
-        ...state,
-        experimentAssignment: nextAssignment,
-        searchResults: updatedSearchResults,
-      };
-    }
-
     case 'UPDATE_FEEDBACK_FIELD': {
       return {
         ...state,
@@ -306,6 +555,16 @@ export function sessionReducer(state, action) {
         category: nextCat,
         selectedTargetProduct: product,
         hiddenTargetProductId: product?.id || null,
+        activeScenario:
+          state.activeScenario && state.activeScenario.category !== nextCat
+            ? {
+                ...state.activeScenario,
+                category: nextCat,
+                target_product_id: product?.id || state.activeScenario.target_product_id,
+                target_product_title: product?.name || state.activeScenario.target_product_title,
+                target_brand: product?.brand || state.activeScenario.target_brand,
+              }
+            : state.activeScenario,
         selectedAttributes: catObj?.defaultAttributes
           ? { ...catObj.defaultAttributes }
           : state.selectedAttributes,
@@ -378,7 +637,10 @@ export function ExperimentSessionProvider({ children }) {
     checking: true,
   });
 
-  const [scenarios, setScenarios] = useState({ specific: [], general: [] });
+  const [scenarios, setScenarios] = useState({
+    specific: FALLBACK_SPECIFIC_SCENARIOS,
+    general: [],
+  });
   const [scenariosLoading, setScenariosLoading] = useState(true);
   const [scenariosError, setScenariosError] = useState(null);
   const [toast, setToast] = useState(null);
@@ -440,20 +702,21 @@ export function ExperimentSessionProvider({ children }) {
     return () => {
       active = false;
     };
-
   }, [refreshHealth, reloadScenarios]);
 
-  // Select default initial scenario once /scenarios loads if none selected yet
+  // Ensure a specific-task session has a fixed specific scenario selected from the specific pool
   useEffect(() => {
-    if (!state.activeScenario && scenarios.specific.length > 0) {
-      const list =
-        state.searchType === 'general' ? scenarios.general : scenarios.specific;
-      const matchCat = list.find((s) => s.category === state.category) || list[0];
-      if (matchCat) {
-        dispatch({ type: 'SELECT_SCENARIO', payload: matchCat });
+    if (
+      state.searchType === 'specific' &&
+      (!state.activeScenario || state.activeScenario.search_type !== 'specific') &&
+      scenarios.specific.length > 0
+    ) {
+      const chosen = pickRandomSpecificScenario(scenarios.specific);
+      if (chosen) {
+        dispatch({ type: 'SELECT_SCENARIO', payload: chosen });
       }
     }
-  }, [scenarios, state.activeScenario, state.searchType, state.category]);
+  }, [scenarios.specific, state.activeScenario, state.searchType]);
 
   // Save session state in sessionStorage
   useEffect(() => {
@@ -472,7 +735,13 @@ export function ExperimentSessionProvider({ children }) {
       reloadScenarios,
       grantConsent: async () => {
         const ts = new Date().toISOString();
-        dispatch({ type: 'GRANT_CONSENT', payload: ts });
+        dispatch({
+          type: 'GRANT_CONSENT',
+          payload: {
+            timestamp: ts,
+            specificPool: scenarios.specific,
+          },
+        });
         try {
           await upsertExperimentSession({
             session_id: state.sessionId,
@@ -489,10 +758,12 @@ export function ExperimentSessionProvider({ children }) {
       setSearchType: (type) => {
         const nextType = type === 'general' ? 'general' : 'specific';
         dispatch({ type: 'SET_SEARCH_TYPE', payload: nextType });
-        if (!state.activeScenario?.isDynamic) {
-          const pool = nextType === 'general' ? scenarios.general : scenarios.specific;
-          const nextScenario =
-            pool.find((s) => s.category === state.category) || pool[0] || null;
+        if (nextType === 'specific') {
+          const pool =
+            scenarios.specific.length > 0
+              ? scenarios.specific
+              : FALLBACK_SPECIFIC_SCENARIOS;
+          const nextScenario = pickRandomSpecificScenario(pool);
           if (nextScenario) {
             dispatch({ type: 'SELECT_SCENARIO', payload: nextScenario });
           }
@@ -525,7 +796,7 @@ export function ExperimentSessionProvider({ children }) {
         }
         if (!state.activeScenario) {
           throw new Error(
-            'No controlled scenario is active. Please check that the backend /scenarios endpoint is reachable.'
+            'No controlled scenario is active. Please check that your target task is configured.'
           );
         }
 
@@ -571,7 +842,6 @@ export function ExperimentSessionProvider({ children }) {
           executed_at: comparisonOutput.executedAt,
         };
 
-        // Persist task log to SQLite backend
         try {
           await logExperimentTask(taskRecord);
         } catch {
@@ -584,8 +854,6 @@ export function ExperimentSessionProvider({ children }) {
         });
         return comparisonOutput;
       },
-      shuffleConditionAssignment: (randomize = true) =>
-        dispatch({ type: 'SHUFFLE_CONDITION_ASSIGNMENT', payload: randomize }),
       updateFeedbackField: (fields) =>
         dispatch({ type: 'UPDATE_FEEDBACK_FIELD', payload: fields }),
       updateConditionRating: (conditionId, metricKey, value) =>
@@ -599,6 +867,32 @@ export function ExperimentSessionProvider({ children }) {
         }
         if (!state.activeScenario || !state.searchResults) {
           throw new Error('Please run at least one search evaluation task before submitting.');
+        }
+
+        for (const key of LIKERT_FIELD_KEYS) {
+          const val = state.feedback[key];
+          if (typeof val !== 'number' || !Number.isInteger(val) || val < 1 || val > 5) {
+            throw new Error(`Please provide a rating from 1 to 5 for ${key}.`);
+          }
+        }
+
+        if (!state.feedback.target_retrieval_outcome) {
+          throw new Error('Please select whether the search returned your intended product.');
+        }
+
+        if (!state.feedback.preferred_condition) {
+          throw new Error('Please select your preferred search experience.');
+        }
+
+        const conditionRatings = state.feedback.condition_ratings || {};
+        for (const condId of ['baseline', 'optimized', 'orchestrated']) {
+          const condObj = conditionRatings[condId] || {};
+          for (const metricKey of CONDITION_RATING_KEYS) {
+            const mVal = condObj[metricKey];
+            if (typeof mVal !== 'number' || !Number.isInteger(mVal) || mVal < 1 || mVal > 5) {
+              throw new Error('Please complete all four ratings (1–5) for each search experience.');
+            }
+          }
         }
 
         const hiddenTargetRecord =

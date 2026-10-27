@@ -48,7 +48,7 @@ const LIKERT_METRICS = [
   { key: 'product_confidence', label: 'Product Confidence', desc: 'Confidence that target exists in catalog' },
   { key: 'purchase_intention', label: 'Purchase Intention', desc: 'Likelihood of completing a simulated purchase' },
   { key: 'return_intention', label: 'Return Intention Risk', desc: 'Perceived risk of returning if purchased (lower is better)' },
-  { key: 'repeat_purchase_intention', label: 'Repeat Purchase', desc: 'Likelihood of using this engine again' },
+  { key: 'repeat_purchase_intention', label: 'Repeat Purchase', desc: 'Likelihood of making another purchase through the platform' },
 ];
 
 export default function ResearcherPage() {
@@ -182,7 +182,7 @@ export default function ResearcherPage() {
                 Live Experiment Diagnostics & Decision Inspector
               </h1>
               <p className="text-slate-400 text-sm mt-1 max-w-2xl">
-                Monitors participant sessions in real-time, displays aggregated 9-point Likert questionnaire responses, and inspects multi-agent orchestration decision traces.
+                Monitors participant sessions in real-time, displays aggregated 5-point Likert questionnaire responses across 9 dimensions, and inspects multi-agent orchestration decision traces.
               </p>
             </div>
 
@@ -307,7 +307,7 @@ export default function ResearcherPage() {
                 {summary?.total_submissions ?? 0}
               </div>
               <div className="mt-2 text-xs text-slate-500">
-                9-point Likert records logged
+                5-point Likert records logged
               </div>
             </div>
 
@@ -336,10 +336,10 @@ export default function ResearcherPage() {
               <div>
                 <h3 className="font-bold text-slate-900 text-base flex items-center gap-2">
                   <BarChart2 className="w-5 h-5 text-blue-600" />
-                  Participant Perceived Quality (7-Point Likert Means)
+                  Participant Perceived Quality (5-Point Likert Means)
                 </h3>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  1 = Strongly Disagree, 4 = Neutral, 7 = Strongly Agree (N = {summary?.total_submissions || 0})
+                  1 = Lowest / Least Favorable, 5 = Highest / Most Favorable (N = {summary?.total_submissions || 0})
                 </p>
               </div>
             </div>
@@ -347,7 +347,7 @@ export default function ResearcherPage() {
             <div className="space-y-3 pt-1">
               {LIKERT_METRICS.map((m) => {
                 const meanVal = summary?.questionnaire_means?.[m.key];
-                const pct = meanVal ? (meanVal / 7) * 100 : 0;
+                const pct = meanVal ? (meanVal / 5) * 100 : 0;
                 return (
                   <div key={m.key} className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
@@ -355,7 +355,7 @@ export default function ResearcherPage() {
                         {m.label}
                       </span>
                       <span className="font-mono font-bold text-slate-900">
-                        {meanVal !== null && meanVal !== undefined ? `${meanVal} / 7.0` : '—'}
+                        {meanVal !== null && meanVal !== undefined ? `${meanVal} / 5.0` : '—'}
                       </span>
                     </div>
                     <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
@@ -363,7 +363,7 @@ export default function ResearcherPage() {
                         className={`h-full rounded-full transition-all duration-500 ${
                           m.key === 'return_intention'
                             ? 'bg-amber-500'
-                            : meanVal && meanVal >= 5.0
+                            : meanVal && meanVal >= 4.0
                             ? 'bg-emerald-500'
                             : 'bg-blue-600'
                         }`}
@@ -988,7 +988,7 @@ export default function ResearcherPage() {
                 <tr className="bg-slate-100/70 border-b border-slate-200 text-slate-600 uppercase font-semibold">
                   <th className="py-3 px-4">Session ID</th>
                   <th className="py-3 px-4">Task Info</th>
-                  <th className="py-3 px-4 text-center">Satisfaction (1-7)</th>
+                  <th className="py-3 px-4 text-center">Satisfaction (1–5)</th>
                   <th className="py-3 px-4 text-center">Preferred System</th>
                   <th className="py-3 px-4 text-center">Target Outcome</th>
                   <th className="py-3 px-4">Participant Notes</th>
@@ -1017,7 +1017,7 @@ export default function ResearcherPage() {
                         </div>
                       </td>
                       <td className="py-3 px-4 text-center font-bold text-slate-900 font-mono">
-                        {sub.overall_satisfaction ? `${sub.overall_satisfaction} / 7` : '—'}
+                        {sub.overall_satisfaction ? `${sub.overall_satisfaction} / 5` : '—'}
                       </td>
                       <td className="py-3 px-4 text-center">
                         <span

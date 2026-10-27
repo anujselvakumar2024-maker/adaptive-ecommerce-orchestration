@@ -1,80 +1,90 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useExperimentSession } from '../hooks/useExperimentSession';
+import RatingControl, {
+  PER_SYSTEM_RATING_QUESTIONS,
+} from '../components/feedback/RatingControl';
+import StageInstructionModal from '../components/common/StageInstructionModal';
 import {
-  FlaskConical,
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
   ShieldCheck,
-  Star,
   RefreshCw,
-  Sparkles,
 } from '../components/common/CategoryIcon';
 
-const LIKERT_QUESTIONS = [
+export const LIKERT_QUESTIONS = [
   {
     key: 'overall_satisfaction',
     label: '1. Overall Satisfaction',
-    question: 'Overall, how satisfied are you with the search recommendations returned across this task?',
+    question:
+      'Overall, how satisfied are you with the search recommendations returned across this task?',
     lowLabel: '1 — Very Dissatisfied',
     highLabel: '5 — Very Satisfied',
   },
   {
     key: 'perceived_relevance',
     label: '2. Perceived Relevance',
-    question: 'How relevant were the top retrieved products to your search intent and requirements?',
+    question:
+      'How relevant were the top retrieved products to your search intent and requirements?',
     lowLabel: '1 — Highly Irrelevant',
     highLabel: '5 — Highly Relevant',
   },
   {
     key: 'ease_of_finding',
     label: '3. Ease of Finding',
-    question: 'How easy was it to find or identify a product that matched your intended criteria?',
+    question:
+      'How easy was it to find or identify a product that matched your intended criteria?',
     lowLabel: '1 — Extremely Difficult',
     highLabel: '5 — Extremely Easy',
   },
   {
     key: 'perceived_usefulness',
     label: '4. Perceived Usefulness',
-    question: 'How useful were the provided search results in helping you make an informed purchase decision?',
+    question:
+      'How useful were the provided search results in helping you make an informed purchase decision?',
     lowLabel: '1 — Not at all Useful',
     highLabel: '5 — Extremely Useful',
   },
   {
     key: 'perceived_diversity',
     label: '5. Perceived Diversity',
-    question: 'Did the search results offer an appropriate variety of brands and models without repetitive redundancy?',
+    question:
+      'Did the search results offer an appropriate variety of brands and models without repetitive redundancy?',
     lowLabel: '1 — Poor Variety (Redundant)',
     highLabel: '5 — Excellent Variety',
   },
   {
     key: 'product_confidence',
     label: '6. Product Confidence',
-    question: 'How confident would you feel in selecting the top-ranked item for actual purchase?',
+    question:
+      'How confident would you feel in selecting the top-ranked item for actual purchase?',
     lowLabel: '1 — Not Confident',
     highLabel: '5 — Completely Confident',
   },
   {
     key: 'purchase_intention',
     label: '7. Stated Purchase-Completion Intention',
-    question: 'Assuming standard market pricing, how likely would you be to complete a purchase from these results?',
+    question:
+      'Assuming standard market pricing, how likely would you be to complete a purchase from these results?',
     lowLabel: '1 — Very Unlikely',
     highLabel: '5 — Very Likely',
   },
   {
     key: 'return_intention',
     label: '8. Stated Return Intention (Store Loyalty)',
-    question: 'How likely would you be to return to this store for future product discovery searches?',
+    question:
+      'How likely would you be to return to this store for future product discovery searches?',
     lowLabel: '1 — Never Return',
     highLabel: '5 — Definitely Return',
   },
   {
     key: 'repeat_purchase_intention',
     label: '9. Stated Repeat-Purchase Intention',
-    question: 'How likely would you be to recommend this shopping platform to a friend or colleague?',
-    lowLabel: '1 — Unlikely to Recommend',
-    highLabel: '5 — Highly Likely',
+    question:
+      'If you needed another product in the future, how likely would you be to make another purchase through this platform?',
+    lowLabel: '1 — Very Unlikely',
+    highLabel: '5 — Very Likely',
   },
 ];
 
@@ -96,6 +106,7 @@ export default function FeedbackPage() {
 
   const feedback = session.feedback;
   const orderedColumns = session.searchResults?.orderedColumns || [];
+  const conditionRatings = feedback.condition_ratings || {};
 
   // Check if participant has completed search
   if (!session.searchResults) {
@@ -116,16 +127,31 @@ export default function FeedbackPage() {
     );
   }
 
-  // Calculate questionnaire completion percentage
-  const totalRequired = LIKERT_QUESTIONS.length + 2; // Likert + Target Retrieval + Preferred System
+  // Calculate questionnaire completion percentage across all required responses:
+  // 1 (Target Retrieval) + 9 (Overall Likert) + 12 (3 systems × 4 ratings) + 1 (Preferred System) = 23
+  const perSystemRequiredCount =
+    orderedColumns.length * PER_SYSTEM_RATING_QUESTIONS.length;
+  const totalRequired = LIKERT_QUESTIONS.length + perSystemRequiredCount + 2;
+
   let completedCount = 0;
-  LIKERT_QUESTIONS.forEach((q) => {
-    if (feedback[q.key] !== null) completedCount += 1;
-  });
   if (feedback.target_retrieval_outcome) completedCount += 1;
+  LIKERT_QUESTIONS.forEach((q) => {
+    if (feedback[q.key] !== null && feedback[q.key] !== undefined) {
+      completedCount += 1;
+    }
+  });
+  orderedColumns.forEach((colSlot) => {
+    const condObj = conditionRatings[colSlot.conditionId] || {};
+    PER_SYSTEM_RATING_QUESTIONS.forEach((m) => {
+      if (condObj[m.key] !== null && condObj[m.key] !== undefined) {
+        completedCount += 1;
+      }
+    });
+  });
   if (feedback.preferred_condition) completedCount += 1;
 
-  const progressPercent = Math.round((completedCount / totalRequired) * 100);
+  const progressPercent =
+    totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 0;
 
   const validate = () => {
     const errs = [];
@@ -134,13 +160,24 @@ export default function FeedbackPage() {
     }
 
     LIKERT_QUESTIONS.forEach((q) => {
-      if (feedback[q.key] === null) {
-        errs.push(`Please rate ${q.label}`);
+      if (feedback[q.key] === null || feedback[q.key] === undefined) {
+        errs.push(`Please rate ${q.label} in Section B.`);
       }
     });
 
+    orderedColumns.forEach((colSlot, idx) => {
+      const sysLabel =
+        colSlot.variantLabel || `System ${String.fromCharCode(65 + idx)}`;
+      const condObj = conditionRatings[colSlot.conditionId] || {};
+      PER_SYSTEM_RATING_QUESTIONS.forEach((m) => {
+        if (condObj[m.key] === null || condObj[m.key] === undefined) {
+          errs.push(`Please rate "${m.label}" for ${sysLabel} in Section C.`);
+        }
+      });
+    });
+
     if (!feedback.preferred_condition) {
-      errs.push('Please select your preferred search engine experience in Section C.');
+      errs.push('Please select your preferred search experience in Section D.');
     }
 
     return errs;
@@ -168,7 +205,7 @@ export default function FeedbackPage() {
     try {
       await submitQuestionnaire();
       setShowThankYou(true);
-      showToast('Evaluation response persisted to research database.', 'success');
+      showToast('Response recorded successfully.', 'success');
     } catch (err) {
       setSubmissionError(err.message || 'Failed to submit feedback.');
       showToast(err.message || 'Submission failed. Please retry.', 'error');
@@ -193,21 +230,31 @@ export default function FeedbackPage() {
 
           <div className="space-y-2">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-              Evaluation Completed &amp; Persisted
+              Evaluation Complete
             </span>
             <h1 className="text-3xl font-bold text-slate-950 pt-1">
-              Thank You for Your Research Feedback!
+              Thank You for Participating
             </h1>
             <p className="text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
-              Your responses have been recorded in the study database under Participant Session{' '}
-              <strong className="font-mono text-slate-900">{session.sessionId}</strong>. Your feedback will help evaluate adaptive orchestration for our upcoming paper.
+              Your responses have been recorded for this study under Participant Session{' '}
+              <strong className="font-mono text-slate-900">{session.sessionId}</strong>.
             </p>
           </div>
 
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-600 max-w-md mx-auto space-y-1 text-left">
-            <div>Session ID: <strong className="text-slate-900">{session.sessionId}</strong></div>
-            <div>Category Evaluated: <strong className="text-slate-900 capitalize">{session.category}</strong></div>
-            <div>Status: <strong className="text-emerald-700 font-bold">Successfully Logged to SQLite</strong></div>
+            <div>
+              Session ID: <strong className="text-slate-900">{session.sessionId}</strong>
+            </div>
+            <div>
+              Category Evaluated:{' '}
+              <strong className="text-slate-900 capitalize">{session.category}</strong>
+            </div>
+            <div>
+              Status:{' '}
+              <strong className="text-emerald-700 font-bold">
+                Response recorded successfully
+              </strong>
+            </div>
           </div>
 
           <div className="pt-4 flex flex-wrap items-center justify-center gap-3">
@@ -216,23 +263,9 @@ export default function FeedbackPage() {
               onClick={handleStartFresh}
               className="px-6 py-3 rounded-xl bg-primary hover:bg-blue-800 text-white font-semibold text-sm shadow-sm transition-all flex items-center gap-2"
             >
-              <span>Test Another Product Task</span>
+              <span>Start Another Task</span>
               <ArrowRight size={16} />
             </button>
-
-            <Link
-              to="/benchmarks"
-              className="px-5 py-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 font-semibold text-sm border border-slate-200 transition-colors"
-            >
-              View Benchmark Results
-            </Link>
-
-            <Link
-              to="/researcher"
-              className="px-5 py-3 rounded-xl bg-slate-100 hover:bg-slate-200/80 text-slate-700 font-semibold text-sm transition-colors"
-            >
-              Researcher View
-            </Link>
           </div>
         </div>
       </div>
@@ -241,6 +274,13 @@ export default function FeedbackPage() {
 
   return (
     <div className="w-full max-w-[980px] mx-auto px-4 sm:px-8 py-8 flex flex-col gap-6">
+      <StageInstructionModal
+        sessionId={session.sessionId}
+        stageKey="feedback"
+        title="What to do"
+        message="Rate each of the three search experiences based on the results you just reviewed, then complete the short overall questionnaire."
+      />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -252,10 +292,10 @@ export default function FeedbackPage() {
             <span className="text-slate-800 font-semibold">Stage 04 · Participant Survey</span>
           </nav>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
-            Research Evaluation Questionnaire
+            Participant Evaluation Questionnaire
           </h1>
           <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-            Please evaluate the search results you just observed. Responses use a 5-point Likert scale (1 = Lowest, 5 = Highest).
+            Please evaluate the search results you just observed. Responses use a 5-point Likert scale (1 = Lowest / Least Favorable, 5 = Highest / Most Favorable).
           </p>
         </div>
 
@@ -313,7 +353,7 @@ export default function FeedbackPage() {
             <h2 className="text-base font-bold text-slate-900">
               Section A: Target Retrieval Verification (Required)
             </h2>
-            <span className="text-xs font-mono text-slate-400">Question 1 of 11</span>
+            <span className="text-xs font-mono text-slate-400">Required</span>
           </div>
 
           <p className="text-xs text-slate-600">
@@ -325,12 +365,12 @@ export default function FeedbackPage() {
               {
                 value: 'exact',
                 title: 'Yes, exact match found',
-                sub: 'The exact target model was retrieved in the results.',
+                sub: 'The intended product appeared in the results.',
               },
               {
                 value: 'alternative',
                 title: 'Found a suitable alternative',
-                sub: 'Found an acceptable substitute matching the specifications.',
+                sub: 'Found an acceptable substitute matching the requirements.',
               },
               {
                 value: 'none',
@@ -373,13 +413,13 @@ export default function FeedbackPage() {
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 className="text-base font-bold text-slate-900">
-                Section B: 5-Point Likert Evaluation Scales (Required)
+                Section B: Overall Search Experience (Required)
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Scale: 1 = Lowest / Least Favorable, 5 = Highest / Most Favorable.
+                5-point Likert scale: 1 = Lowest / Least Favorable, 5 = Highest / Most Favorable.
               </p>
             </div>
-            <span className="text-xs font-mono text-slate-400">9 Standardized Dimensions</span>
+            <span className="text-xs font-mono text-slate-400">9 Dimensions (1–5 Scale)</span>
           </div>
 
           <div className="space-y-6 divide-y divide-slate-100">
@@ -434,17 +474,45 @@ export default function FeedbackPage() {
           </div>
         </section>
 
-        {/* SECTION C: Comparative Preference Selection */}
+        {/* SECTION C: Per-System Subjective Ratings (Systems A, B, and C) */}
+        <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-5">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h2 className="text-base font-bold text-slate-900">
+                Section C: Rate Each Search Experience (Required)
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Rate System A, System B, and System C individually on a 1–5 scale (1 = Lowest, 5 = Highest).
+              </p>
+            </div>
+            <span className="text-xs font-mono text-slate-400">Systems A, B &amp; C</span>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {orderedColumns.map((colSlot, colIdx) => (
+              <RatingControl
+                key={colSlot.shortCode || colIdx}
+                columnSlot={colSlot}
+                columnIndex={colIdx}
+                ratings={conditionRatings[colSlot.conditionId]}
+                onRateMetric={updateConditionRating}
+                blindedMode={true}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* SECTION D: Comparative Preference Selection */}
         <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <h2 className="text-base font-bold text-slate-900">
-              Section C: System Preference Selection (Required)
+              Section D: Preferred Search Experience (Required)
             </h2>
-            <span className="text-xs font-mono text-slate-400">Question 11 of 11</span>
+            <span className="text-xs font-mono text-slate-400">Required</span>
           </div>
 
           <p className="text-xs text-slate-600">
-            Based on the results shown on the comparison page, which search system would you prefer as your default shopping engine?
+            Based on the results shown on the comparison page, which search experience would you prefer as your default shopping search?
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
@@ -475,7 +543,7 @@ export default function FeedbackPage() {
                     />
                   </div>
                   <span className="text-[11px] text-slate-400 font-mono mt-3">
-                    Select as preferred engine
+                    Select as preferred experience
                   </span>
                 </label>
               );
@@ -509,11 +577,11 @@ export default function FeedbackPage() {
           </div>
         </section>
 
-        {/* SECTION D: Open-Ended Comments */}
+        {/* SECTION E: Open-Ended Comments */}
         <section className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100">
             <h2 className="text-base font-bold text-slate-900">
-              Section D: Qualitative Feedback (Optional)
+              Section E: Additional Comments (Optional)
             </h2>
             <span className="text-xs font-mono text-slate-400">
               {(feedback.comments || '').length} / 500 chars
@@ -521,7 +589,7 @@ export default function FeedbackPage() {
           </div>
 
           <p className="text-xs text-slate-600">
-            Please share any observations regarding ranking relevance, brand diversity, price matching, or stockout handling:
+            Share any thoughts on the search results, product variety, or how well the systems matched what you were looking for:
           </p>
 
           <textarea
@@ -529,7 +597,7 @@ export default function FeedbackPage() {
             maxLength={500}
             value={feedback.comments || ''}
             onChange={(e) => updateFeedbackField({ comments: e.target.value })}
-            placeholder="Optional comments on system differences, unexpected product recommendations, or search ease..."
+            placeholder="Optional comments on system differences, product recommendations, or ease of search..."
             className="w-full p-4 rounded-2xl bg-slate-50 focus:bg-white text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 text-xs transition-all outline-none resize-none"
           />
         </section>
@@ -557,11 +625,11 @@ export default function FeedbackPage() {
               {isSubmitting ? (
                 <>
                   <RefreshCw size={16} className="animate-spin" />
-                  <span>Submitting to Database...</span>
+                  <span>Submitting Response...</span>
                 </>
               ) : (
                 <>
-                  <span>Submit Research Evaluation</span>
+                  <span>Submit Feedback</span>
                   <ArrowRight size={16} />
                 </>
               )}

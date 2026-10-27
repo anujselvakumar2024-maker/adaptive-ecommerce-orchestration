@@ -3,30 +3,19 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useExperimentSession } from '../hooks/useExperimentSession';
 import { formatINR, getCategoryById } from '../data/categories';
 import { ProductVisual } from '../components/common/CategoryIcon';
+import StageInstructionModal from '../components/common/StageInstructionModal';
 import {
-  FlaskConical,
-  Search,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
   AlertTriangle,
-  Shuffle,
   EyeOff,
   Truck,
-  Star,
-  Info,
 } from '../components/common/CategoryIcon';
 
 export default function ComparisonPage() {
   const navigate = useNavigate();
-  const {
-    session,
-    shuffleConditionAssignment,
-    showToast,
-  } = useExperimentSession();
+  const { session } = useExperimentSession();
 
   const resultsData = session.searchResults;
-  const activeScenario = session.activeScenario;
   const activeCategoryObj = getCategoryById(session.category);
 
   // If user arrived without results, prompt to execute query first
@@ -48,13 +37,15 @@ export default function ComparisonPage() {
     );
   }
 
-  const handleShuffle = () => {
-    shuffleConditionAssignment(true);
-    showToast('Column order randomized for unbiased evaluation.', 'info');
-  };
-
   return (
     <div className="w-full max-w-[1360px] mx-auto px-4 sm:px-8 py-8 flex flex-col gap-6">
+      <StageInstructionModal
+        sessionId={session.sessionId}
+        stageKey="comparison"
+        title="What to do"
+        message="You are seeing results from three different versions of our search system. Compare the results as you would while shopping and decide which search experience was most useful to you. The system identities are hidden during the study."
+      />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
@@ -63,27 +54,14 @@ export default function ComparisonPage() {
               Query Entry
             </Link>
             <span>/</span>
-            <span className="text-slate-800 font-semibold">Stage 03 · Tri-System Evaluation</span>
+            <span className="text-slate-800 font-semibold">Stage 03 · Result Comparison</span>
           </nav>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
             Compare Three Search Result Sets
           </h1>
           <p className="text-sm text-slate-600 mt-1 max-w-3xl">
-            Review the product rankings returned for your query across three search engines.
-            Engine identities are blinded to ensure unbiased research feedback.
+            Review the three sets of search results returned for your query. The system identities are hidden during the study.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={handleShuffle}
-            title="Shuffle column display order to control for presentation order bias"
-            className="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-mono text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5 shadow-2xs"
-          >
-            <Shuffle size={13} />
-            <span>Randomize Columns</span>
-          </button>
         </div>
       </div>
 
@@ -91,13 +69,13 @@ export default function ComparisonPage() {
       <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="text-[11px] font-mono text-slate-400 uppercase tracking-wider font-semibold">
-            Your Evaluated Query
+            Your Search Query
           </div>
           <div className="text-base font-bold text-slate-900 font-sans">
             &ldquo;{resultsData.query}&rdquo;
           </div>
           <div className="text-xs text-slate-500 font-mono">
-            Category: {activeCategoryObj.name} · Domain Search
+            Category: {activeCategoryObj.name}
           </div>
         </div>
 
@@ -199,7 +177,7 @@ export default function ComparisonPage() {
 
               {/* Column Footer */}
               <div className="mt-5 pt-3 border-t border-slate-100 text-[11px] font-mono text-slate-400 text-center">
-                Candidate Set for {variantLabel} Complete
+                End of results
               </div>
             </div>
           );
@@ -210,10 +188,10 @@ export default function ComparisonPage() {
       <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4 mt-2">
         <div className="space-y-1 text-center sm:text-left">
           <div className="font-bold text-slate-900 text-sm">
-            Finished reviewing the product rankings?
+            Finished reviewing the search results?
           </div>
           <p className="text-xs text-slate-500">
-            Proceed to the evaluation survey to rate satisfaction, relevance, and your preferred search experience.
+            Proceed to the survey to rate each search experience and share your feedback.
           </p>
         </div>
 
@@ -222,7 +200,7 @@ export default function ComparisonPage() {
           onClick={() => navigate('/feedback')}
           className="px-7 py-3 rounded-xl bg-primary hover:bg-blue-800 text-white font-semibold text-sm shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 shrink-0 w-full sm:w-auto"
         >
-          <span>Complete Evaluation Survey (Step 4)</span>
+          <span>Continue to Feedback Survey</span>
           <ArrowRight size={16} />
         </button>
       </div>

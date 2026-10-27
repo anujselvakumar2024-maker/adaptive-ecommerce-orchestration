@@ -2,17 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useExperimentSession } from '../hooks/useExperimentSession';
 import { getCategoryById, formatINR } from '../data/categories';
+import StageInstructionModal from '../components/common/StageInstructionModal';
 import {
   CategoryIcon,
-  FlaskConical,
-  Search,
   Lock,
   RefreshCw,
   AlertTriangle,
   ArrowRight,
-  CheckCircle2,
   Info,
-  Sparkles,
 } from '../components/common/CategoryIcon';
 
 export default function QueryPage() {
@@ -29,27 +26,27 @@ export default function QueryPage() {
 
   const activeScenario = session.activeScenario;
   const activeCategoryObj = getCategoryById(session.category);
+  const isSpecificTask = session.searchType === 'specific';
 
   // If user arrived without selecting a scenario or defining specs, redirect to /experiment
   if (!activeScenario) {
     return (
       <div className="w-full max-w-[800px] mx-auto px-4 py-16 text-center space-y-4">
         <AlertTriangle size={36} className="text-amber-500 mx-auto" />
-        <h2 className="text-xl font-bold text-slate-900">No Target Specifications Defined</h2>
+        <h2 className="text-xl font-bold text-slate-900">No Target Task Configured</h2>
         <p className="text-sm text-slate-500 max-w-md mx-auto">
-          Please define your target product requirements before formulating a search query.
+          Please review or choose your product task before entering a search query.
         </p>
         <Link
           to="/experiment"
           className="inline-flex px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-blue-800 transition-colors"
         >
-          Set Requirements in Builder →
+          Go to Task Setup →
         </Link>
       </div>
     );
   }
 
-  const isDynamic = Boolean(activeScenario.isDynamic || activeScenario.id?.startsWith('dynamic_spec_'));
   const constraints = activeScenario.target_constraints || {};
 
   const handleQueryChange = (val) => {
@@ -71,7 +68,7 @@ export default function QueryPage() {
 
     try {
       await runComparisonExperiment(trimmed);
-      showToast('Query executed across all 3 search systems.', 'success');
+      showToast('Search completed. Compare the three sets of results.', 'success');
       navigate('/comparison');
     } catch (err) {
       setErrorMsg(err.message || 'Search execution failed.');
@@ -82,21 +79,30 @@ export default function QueryPage() {
 
   return (
     <div className="w-full max-w-[1100px] mx-auto px-4 sm:px-8 py-8 flex flex-col gap-6">
+      <StageInstructionModal
+        sessionId={session.sessionId}
+        stageKey="query"
+        title="What to do"
+        message="Write your search query as if you were a customer looking for the product or specifications shown above. Next, you’ll compare the search results returned for your query."
+      />
+
       {/* Step Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-mono mb-1">
             <Link to="/experiment" className="hover:text-primary transition-colors">
-              Set Requirements
+              Task Setup
             </Link>
             <span>/</span>
-            <span className="text-slate-800 font-semibold">Stage 02 · Query Formulation</span>
+            <span className="text-slate-800 font-semibold">Stage 02 · Query Entry</span>
           </nav>
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight">
-            Formulate Your Natural-Language Query
+            Write Your Search Query
           </h1>
           <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-            Describe what you are searching for in your own words. Your query will execute across all three search systems.
+            {isSpecificTask
+              ? 'You will be shown a target product and asked to search for it in your own words.'
+              : 'Choose the type of product and specifications you would be looking to buy, then search for it in your own words.'}
           </p>
         </div>
 
@@ -115,20 +121,13 @@ export default function QueryPage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
-                  Your Target Reference Requirements
+                  {isSpecificTask
+                    ? 'Specific Product Search Task'
+                    : 'General Product Requirements Task'}
                 </span>
-                {isDynamic ? (
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
-                    Custom Specification
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[10px] font-bold">
-                    Controlled Scenario
-                  </span>
-                )}
               </div>
               <div className="text-xs text-slate-500 font-mono capitalize mt-0.5">
-                Domain: {activeCategoryObj?.name || session.category}
+                Category: {activeCategoryObj?.name || session.category}
               </div>
             </div>
           </div>
@@ -137,12 +136,12 @@ export default function QueryPage() {
             to="/experiment"
             className="text-xs text-primary hover:text-blue-800 font-semibold transition-colors"
           >
-            Edit Specifications →
+            {isSpecificTask ? 'Review Target →' : 'Edit Requirements →'}
           </Link>
         </div>
 
         {/* Task Objective Description */}
-        {session.searchType === 'specific' ? (
+        {isSpecificTask ? (
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
             <div className="text-xs font-mono uppercase text-slate-500 font-bold">
               Target Product Title:
@@ -152,14 +151,14 @@ export default function QueryPage() {
             </p>
             {activeScenario.target_brand && (
               <div className="text-xs font-mono text-slate-500">
-                Target Brand: <strong className="text-slate-800">{activeScenario.target_brand}</strong>
+                Brand: <strong className="text-slate-800">{activeScenario.target_brand}</strong>
               </div>
             )}
           </div>
         ) : (
           <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
             <div className="text-xs font-mono uppercase text-slate-500 font-bold">
-              Target Criteria To Satisfy:
+              Selected Product Requirements:
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 pt-1">
               {/* Budget Range */}
@@ -257,7 +256,7 @@ export default function QueryPage() {
         <div className="text-xs text-slate-500 flex items-center gap-1.5 pt-1">
           <Info size={14} className="text-primary shrink-0" />
           <span>
-            Formulate a natural search query that you would normally type into a store search bar to find an item meeting these criteria.
+            Write the search query you would normally type into an online store search bar to find this product.
           </span>
         </div>
       </div>
@@ -269,7 +268,7 @@ export default function QueryPage() {
       >
         <div className="flex items-center justify-between">
           <label htmlFor="participant-query-input" className="text-sm font-bold text-slate-900">
-            Enter your natural-language search query:
+            Enter your search query:
           </label>
           <span className="text-xs font-mono text-slate-400">
             {session.userQuery?.length || 0} characters
@@ -282,7 +281,7 @@ export default function QueryPage() {
             rows={3}
             value={session.userQuery || ''}
             onChange={(e) => handleQueryChange(e.target.value)}
-            placeholder="Type your search query here (e.g. 15 inch gaming laptop 16gb ram ssd under 75000)..."
+            placeholder="Type your search query in your own words..."
             className="w-full p-4 rounded-2xl bg-slate-50 focus:bg-white text-slate-900 placeholder:text-slate-400 border border-slate-200 focus:border-primary focus:ring-2 focus:ring-blue-100 text-base font-medium transition-all outline-none resize-none"
           />
         </div>
@@ -294,12 +293,11 @@ export default function QueryPage() {
           </div>
         )}
 
-        {/* Leakage Protection Callout */}
-        <div className="p-3.5 rounded-xl bg-slate-50 text-xs font-mono text-slate-500 flex items-start gap-2 border border-slate-100">
+        {/* Target Privacy Callout */}
+        <div className="p-3.5 rounded-xl bg-slate-50 text-xs text-slate-600 flex items-start gap-2 border border-slate-100">
           <Lock size={15} className="text-slate-400 shrink-0 mt-0.5" />
           <span>
-            <strong>Experimental Guarantee:</strong> Your search input is transmitted alone to the retrieval API.
-            The target product ID and target constraints are strictly excluded from the request.
+            Target privacy: Only your search query is used during retrieval. The target information is used only after results are returned for evaluation.
           </span>
         </div>
 
@@ -308,7 +306,7 @@ export default function QueryPage() {
             to="/experiment"
             className="text-xs font-medium text-slate-500 hover:text-slate-800 transition-colors"
           >
-            ← Back to Specification Builder
+            ← Back to Task Setup
           </Link>
 
           <button
@@ -319,11 +317,11 @@ export default function QueryPage() {
             {isRunning ? (
               <>
                 <RefreshCw size={16} className="animate-spin" />
-                <span>Running 3-Way Search Pipelines...</span>
+                <span>Running search...</span>
               </>
             ) : (
               <>
-                <span>Submit Query &amp; Compare Systems (Step 3)</span>
+                <span>Search &amp; Compare Results</span>
                 <ArrowRight size={16} />
               </>
             )}
