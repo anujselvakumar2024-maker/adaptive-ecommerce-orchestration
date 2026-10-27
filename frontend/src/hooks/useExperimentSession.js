@@ -398,9 +398,17 @@ export function ExperimentSessionProvider({ children }) {
   }, [toast]);
 
   const refreshHealth = useCallback(async () => {
-    setBackendHealth((prev) => ({ ...prev, checking: true }));
+    setBackendHealth((prev) => ({
+      ...prev,
+      baseUrl: getApiBaseUrl(),
+      checking: true,
+    }));
     const res = await checkBackendHealth();
-    setBackendHealth({ ...res, checking: false });
+    setBackendHealth({
+      ...res,
+      baseUrl: res.baseUrl || getApiBaseUrl(),
+      checking: false,
+    });
     return res;
   }, []);
 
@@ -421,8 +429,18 @@ export function ExperimentSessionProvider({ children }) {
 
   // Initial health check & scenario loading on mount
   useEffect(() => {
-    refreshHealth();
-    reloadScenarios();
+    let active = true;
+    Promise.all([refreshHealth(), reloadScenarios()]).then(
+      ([healthRes, scenariosData]) => {
+        if (active && healthRes?.connected && !scenariosData) {
+          reloadScenarios();
+        }
+      }
+    );
+    return () => {
+      active = false;
+    };
+
   }, [refreshHealth, reloadScenarios]);
 
   // Select default initial scenario once /scenarios loads if none selected yet

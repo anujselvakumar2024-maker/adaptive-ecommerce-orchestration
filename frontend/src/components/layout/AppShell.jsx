@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from './Header';
 import { useExperimentSession } from '../../hooks/useExperimentSession';
+import { getApiBaseUrl } from '../../services/api';
 import {
   FlaskConical,
   XCircle,
@@ -14,7 +15,12 @@ import {
 
 export default function AppShell({ children }) {
   const [activeModal, setActiveModal] = useState(null);
-  const { backendHealth, toast, dismissToast } = useExperimentSession();
+  const { backendHealth, refreshHealth, toast, dismissToast } =
+    useExperimentSession();
+
+  const activeBaseUrl = backendHealth.baseUrl || getApiBaseUrl();
+  const isLocalBackend =
+    activeBaseUrl.includes('localhost') || activeBaseUrl.includes('127.0.0.1');
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 font-body-md text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
@@ -22,19 +28,33 @@ export default function AppShell({ children }) {
 
       {/* Disconnected Backend Warning Banner if offline */}
       {!backendHealth.checking && !backendHealth.connected && (
-        <div className="fixed top-16 left-0 right-0 z-40 bg-red-600 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-2 shadow-sm">
+        <div className="fixed top-16 left-0 right-0 z-40 bg-red-600 text-white px-4 py-2 text-center text-sm font-medium flex flex-wrap items-center justify-center gap-2 shadow-sm">
           <AlertTriangle size={16} />
           <span>
             FastAPI Backend is currently unreachable at{' '}
             <code className="bg-red-700/80 px-1.5 py-0.5 rounded text-xs font-mono">
-              {backendHealth.baseUrl}
+              {activeBaseUrl}
             </code>
-            . Run{' '}
-            <code className="bg-red-700/80 px-1.5 py-0.5 rounded text-xs font-mono">
-              python -m uvicorn api:app --port 8000
-            </code>{' '}
-            to enable live search and experiment logging.
+            .{' '}
+            {isLocalBackend ? (
+              <>
+                Run{' '}
+                <code className="bg-red-700/80 px-1.5 py-0.5 rounded text-xs font-mono">
+                  python -m uvicorn api:app --port 8000
+                </code>{' '}
+                to enable live search and experiment logging.
+              </>
+            ) : (
+              'The deployed Render service may be waking up from a cold start — please wait a moment and retry.'
+            )}
           </span>
+          <button
+            type="button"
+            onClick={refreshHealth}
+            className="ml-1 px-2.5 py-0.5 rounded bg-white/20 hover:bg-white/30 text-white text-xs font-mono font-semibold transition-colors"
+          >
+            Retry Connection
+          </button>
         </div>
       )}
 
@@ -81,9 +101,11 @@ export default function AppShell({ children }) {
             </div>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3 font-mono-data text-[11px] text-slate-500">
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1" title={activeBaseUrl}>
               <span className={`w-2 h-2 rounded-full ${backendHealth.connected ? 'bg-emerald-500' : 'bg-red-500'}`} />
-              {backendHealth.connected ? `FastAPI Port 8000 (${backendHealth.products} SKUs)` : 'Backend Offline'}
+              {backendHealth.connected
+                ? `FastAPI Online (${backendHealth.products} SKUs)`
+                : 'Backend Offline'}
             </span>
             <span>·</span>
             <span>173 ESCI Ground-Truth Queries</span>

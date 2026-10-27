@@ -1,20 +1,42 @@
 import { normalizeCategoryId } from '../data/categories.js';
 
-const DEFAULT_API_BASE_URL = 'http://localhost:8000';
+export const PRODUCTION_API_BASE_URL =
+  'https://adaptive-ecommerce-orchestration.onrender.com';
+export const DEVELOPMENT_API_BASE_URL = 'http://localhost:8000';
 
-export const API_BASE_URL =
-  (typeof import.meta !== 'undefined' &&
-  import.meta.env &&
-  import.meta.env.VITE_API_BASE_URL
-    ? String(import.meta.env.VITE_API_BASE_URL).trim().replace(/\/+$/, '')
-    : '') || DEFAULT_API_BASE_URL;
+/**
+ * Resolves the backend API base URL from a Vite-compatible environment object.
+ * - Priority 1: Explicit VITE_API_BASE_URL environment variable
+ * - Priority 2: PRODUCTION_API_BASE_URL when running in production (PROD === true)
+ * - Priority 3: DEVELOPMENT_API_BASE_URL ('http://localhost:8000') in local development
+ */
+export function resolveApiBaseUrl(env = {}) {
+  const configuredUrl =
+    env && typeof env.VITE_API_BASE_URL === 'string'
+      ? env.VITE_API_BASE_URL.trim()
+      : '';
+  const isProd = Boolean(
+    env && (env.PROD === true || env.MODE === 'production')
+  );
+  const rawUrl =
+    configuredUrl ||
+    (isProd ? PRODUCTION_API_BASE_URL : DEVELOPMENT_API_BASE_URL);
+  return rawUrl.replace(/\/+$/, '');
+}
+
+export const API_BASE_URL = (
+  import.meta.env
+    ? import.meta.env.VITE_API_BASE_URL ||
+      (import.meta.env.PROD
+        ? PRODUCTION_API_BASE_URL
+        : DEVELOPMENT_API_BASE_URL)
+    : PRODUCTION_API_BASE_URL
+)
+  .trim()
+  .replace(/\/+$/, '');
 
 export function getApiBaseUrl() {
-  const envUrl =
-    typeof import.meta !== 'undefined' &&
-    import.meta.env &&
-    import.meta.env.VITE_API_BASE_URL;
-  return (envUrl && String(envUrl).trim().replace(/\/+$/, '')) || API_BASE_URL;
+  return API_BASE_URL;
 }
 
 export class ApiConnectionError extends Error {
@@ -27,25 +49,49 @@ export class ApiConnectionError extends Error {
 }
 
 async function requestJson(endpoint, options = {}) {
-  const baseUrl = getApiBaseUrl().replace(/\/$/, '');
+  const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
   const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
   const url = `${baseUrl}${cleanEndpoint}`;
+  const {
+    timeoutMs = 35000,
+    headers: customHeaders,
+    ...fetchOptions
+  } = options;
+
+  const controller =
+    typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId =
+    controller && timeoutMs > 0
+      ? setTimeout(() => controller.abort(), timeoutMs)
+      : null;
 
   let response;
   try {
     response = await fetch(url, {
       headers: {
         'Content-Type': 'application/json',
-        ...(options.headers || {}),
+        ...(customHeaders || {}),
       },
-      ...options,
+      ...(controller ? { signal: controller.signal } : {}),
+      ...fetchOptions,
     });
   } catch (networkErr) {
+    const isLocal =
+      baseUrl.includes('localhost') || baseUrl.includes('127.0.0.1');
+    const isTimeout = networkErr && networkErr.name === 'AbortError';
+    const reason = isTimeout
+      ? `Request to ${baseUrl}${cleanEndpoint} timed out after ${Math.round(timeoutMs / 1000)}s.`
+      : `Unable to reach FastAPI backend at ${baseUrl}.`;
+    const guidance = isLocal
+      ? 'Ensure "python -m uvicorn api:app --reload --port 8000" is running locally.'
+      : 'The Render backend service may be waking up from a cold start — please wait a few seconds and retry.';
     throw new ApiConnectionError(
-      `Unable to reach FastAPI backend at ${baseUrl}. Ensure "uvicorn api:app --reload --port 8000" is running.`,
+      `${reason} ${guidance}`,
       null,
       cleanEndpoint
     );
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 
   if (!response.ok) {
@@ -73,28 +119,57 @@ async function requestJson(endpoint, options = {}) {
 
 /**
  * 1. Health Check — GET /health
+ * Performs a single automatic retry if the initial check fails or times out
+ * to handle Render free-tier cold-start spin-up cleanly without infinite polling.
  */
-export async function checkBackendHealth() {
-  const start = performance.now();
-  try {
-    const data = await requestJson('/health', { method: 'GET' });
+export async function checkBackendHealth({ retryOnColdStart = true } = {}) {
+  const baseUrl = getApiBaseUrl();
+
+  const attemptHealth = async (timeoutMs) => {
+    const start = performance.now();
+    const data = await requestJson('/health', {
+      method: 'GET',
+      timeoutMs,
+    });
     const latencyMs = Math.max(1, Math.round(performance.now() - start));
+    const isOk = Boolean(
+      data && (data.status === 'ok' || typeof data.products === 'number')
+    );
     return {
-      connected: data?.status === 'ok',
-      status: data?.status || 'unknown',
+      connected: isOk,
+      status: data?.status || (isOk ? 'ok' : 'unknown'),
       products: Number(data?.products) || 0,
       latencyMs,
-      baseUrl: getApiBaseUrl(),
+      baseUrl,
       error: null,
     };
-  } catch (err) {
+  };
+
+  try {
+    return await attemptHealth(25000);
+  } catch (firstErr) {
+    if (retryOnColdStart) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      try {
+        return await attemptHealth(35000);
+      } catch (retryErr) {
+        return {
+          connected: false,
+          status: 'disconnected',
+          products: 0,
+          latencyMs: null,
+          baseUrl,
+          error: retryErr.message || 'Backend unreachable',
+        };
+      }
+    }
     return {
       connected: false,
       status: 'disconnected',
       products: 0,
       latencyMs: null,
-      baseUrl: getApiBaseUrl(),
-      error: err.message || 'Backend unreachable',
+      baseUrl,
+      error: firstErr.message || 'Backend unreachable',
     };
   }
 }
@@ -423,7 +498,7 @@ export async function fetchExperimentSummary() {
 }
 
 export function getExperimentCsvExportUrl() {
-  return `${getApiBaseUrl().replace(/\/$/, '')}/experiments/export.csv`;
+  return `${getApiBaseUrl().replace(/\/+$/, '')}/experiments/export.csv`;
 }
 
 /**
@@ -517,4 +592,3 @@ export function getDemoFeedbackLog() {
   }
   return [];
 }
-

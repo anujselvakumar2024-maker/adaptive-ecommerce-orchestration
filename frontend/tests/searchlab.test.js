@@ -17,7 +17,17 @@ import {
   loadSavedState,
   STORAGE_KEY,
 } from '../src/hooks/useExperimentSession.js';
-import { submitFeedbackPayload, getDemoFeedbackLog } from '../src/services/api.js';
+import {
+  submitFeedbackPayload,
+  getDemoFeedbackLog,
+  resolveApiBaseUrl,
+  PRODUCTION_API_BASE_URL,
+  DEVELOPMENT_API_BASE_URL,
+  getApiBaseUrl,
+  getAdapterStatus,
+  getExperimentCsvExportUrl,
+  checkBackendHealth,
+} from '../src/services/api.js';
 
 test('Catalog integrity & duplicate SKU check: all products have unique IDs, unique SKUs, and valid categories', () => {
   assert.ok(MOCK_PRODUCTS.length >= 16, 'Catalog should contain realistic sample items');
@@ -407,4 +417,58 @@ test('Feedback submission adapter stores records in localStorage in demo mode an
   assert.equal(log[0].targetProduct.sku, 'RF458BESP-WH');
 
   delete globalThis.window;
+});
+
+
+test('API base URL resolution uses Render in production, localhost in development, and preserves baseUrl on health checks', async () => {
+  assert.equal(
+    resolveApiBaseUrl({ PROD: true, MODE: 'production' }),
+    PRODUCTION_API_BASE_URL,
+    'Production builds without VITE_API_BASE_URL must resolve to the Render production URL'
+  );
+  assert.equal(
+    resolveApiBaseUrl({ PROD: true, VITE_API_BASE_URL: '   ' }),
+    PRODUCTION_API_BASE_URL,
+    'Blank VITE_API_BASE_URL in production must fall back to Render production URL'
+  );
+  assert.equal(
+    resolveApiBaseUrl({ PROD: false, MODE: 'development' }),
+    DEVELOPMENT_API_BASE_URL,
+    'Local development without VITE_API_BASE_URL must resolve to http://localhost:8000'
+  );
+  assert.equal(
+    resolveApiBaseUrl({
+      PROD: true,
+      VITE_API_BASE_URL: 'https://adaptive-ecommerce-orchestration.onrender.com///',
+    }),
+    'https://adaptive-ecommerce-orchestration.onrender.com',
+    'Trailing slashes must be stripped from VITE_API_BASE_URL'
+  );
+
+  assert.equal(
+    getAdapterStatus().baseUrl,
+    getApiBaseUrl(),
+    'Adapter status must report the shared resolved API base URL'
+  );
+  assert.equal(
+    getExperimentCsvExportUrl(),
+    `${getApiBaseUrl()}/experiments/export.csv`,
+    'CSV export endpoint must use the shared resolved API base URL'
+  );
+
+  // Verify failed health check preserves getApiBaseUrl() and never resets to localhost
+  const originalFetch = globalThis.fetch;
+  const requestedUrls = [];
+  globalThis.fetch = async (url) => {
+    requestedUrls.push(url);
+    throw new Error('Simulated network timeout');
+  };
+  try {
+    const health = await checkBackendHealth({ retryOnColdStart: false });
+    assert.equal(health.connected, false);
+    assert.equal(health.baseUrl, getApiBaseUrl());
+    assert.deepEqual(requestedUrls, [`${getApiBaseUrl()}/health`]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
