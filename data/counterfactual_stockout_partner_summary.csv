@@ -1,0 +1,4 @@
+mode,cases,target_recovery_rate,target_mrr,partner_recovery_rate
+baseline,15,0.0,0.0,0.0
+optimized,15,0.0,0.0,0.0
+orchestrated,15,100.0,1.0,100.0
