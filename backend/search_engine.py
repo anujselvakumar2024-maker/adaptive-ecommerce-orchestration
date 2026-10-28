@@ -113,17 +113,21 @@ class SearchEngine:
         constraints = {}
 
         number = (
-            r"\d+(?:\.\d+)?"
+            r"(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?"
             r"(?:\s*(?:k|lakh|lac))?"
         )
+        
+        currency = r"(?:₹|rs\.?|inr)"
+        amount = rf"(?:{currency}\s*)?({number})"
 
         # ------------------------------------------
         # PRICE RANGE
         # ------------------------------------------
 
         match = re.search(
-            rf"(?:between\s+)?({number})"
-            rf"\s*(?:-|to|and)\s*({number})",
+            rf"(?:between\s+)?{amount}"
+            rf"\s*(?:-|to|and)\s*"
+            rf"(?:{currency}\s*)?({number})",
             q
         )
 
@@ -140,7 +144,7 @@ class SearchEngine:
 
             match = re.search(
                 rf"(?:under|below|less than|max(?:imum)?|upto|up to)"
-                rf"\s*₹?\s*({number})",
+                rf"\s*{amount}",
                 q
             )
 
@@ -150,8 +154,8 @@ class SearchEngine:
                 )
 
             match = re.search(
-                rf"(?:above|over|more than|min(?:imum)?|at least)"
-                rf"\s*₹?\s*({number})",
+                rf"(?:above|over|more than|min(?:imum)?)"
+                rf"\s*{amount}",
                 q
             )
 
@@ -243,10 +247,13 @@ class SearchEngine:
         # ------------------------------------------
         # BRAND
         # ------------------------------------------
-
+        
         for brand in self.brands:
-
-            if brand in q:
+        
+            if re.search(
+                rf"(?<!\w){re.escape(brand)}(?!\w)",
+                q
+            ):
                 constraints["brand"] = brand
                 break
 
