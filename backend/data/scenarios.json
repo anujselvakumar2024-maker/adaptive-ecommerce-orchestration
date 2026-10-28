@@ -1,274 +1,96 @@
 {
   "specific": [
     {
-      "id": "phone_normal",
+      "id": "phone_normal_1",
       "search_type": "specific",
       "category": "phone",
       "scenario_type": "normal",
-      "target_product_id": "B079MBRDNN",
-      "target_product_title": "NUU Mobile G3-64GB/4GB RAM - 13MP+5MP Rear Camera, 13MP Front Selfie Camera - Dual-SIM 4G LTE Unlocked Cell Phone- Blue-One-Year US Warranty",
-      "target_brand": "NUU",
+      "target_product_id": "B01CR1FQMG",
+      "target_product_title": "Apple iPhone 6S, 64GB, Rose Gold - For AT&T / T-Mobile (Renewed)",
+      "target_brand": "Apple",
       "internal_stock": 1,
       "partner_available": 0,
-      "reference_query": "NUU Mobile G3-64GB/4GB RAM - 13MP+5MP Rear Camera, 13MP Front Selfie Camera - Dual-SIM 4G LTE Unlocked Cell Phone- Blue-One-Year US Warranty",
+      "reference_query": "Apple iPhone 6S, 64GB, Rose Gold - For AT&T / T-Mobile (Renewed)",
       "expected_orchestration": false
     },
     {
-      "id": "phone_partner_recovery",
+      "id": "phone_normal_2",
+      "search_type": "specific",
+      "category": "phone",
+      "scenario_type": "normal",
+      "target_product_id": "B01FIRN3US",
+      "target_product_title": "BlackBerry Priv STV100-1 AT&T Unlocked Slider Android Cell Phone - Black",
+      "target_brand": "BlackBerry",
+      "internal_stock": 1,
+      "partner_available": 0,
+      "reference_query": "BlackBerry Priv STV100-1 AT&T Unlocked Slider Android Cell Phone - Black",
+      "expected_orchestration": false
+    },
+    {
+      "id": "phone_partner_recovery_1",
       "search_type": "specific",
       "category": "phone",
       "scenario_type": "partner_recovery",
-      "target_product_id": "B07KCHYJ8H",
-      "target_product_title": "NUU Mobile G3 Plus Unlocked Cell Phone 64GB + 4GB RAM 4000 mAh Battery - 5.7\" Android 8.1 Oreo Smartphone - Onyx Black",
-      "target_brand": "NUU",
+      "target_product_id": "B01DC3L5MI",
+      "target_product_title": "Apple iPhone 6s Plus a1634 64GB Space Gray Smartphone AT&T (Renewed)",
+      "target_brand": "Amuoc",
       "internal_stock": 0,
       "partner_available": 1,
-      "reference_query": "NUU Mobile G3 Plus Unlocked Cell Phone 64GB + 4GB RAM 4000 mAh Battery - 5.7\" Android 8.1 Oreo Smartphone - Onyx Black",
+      "reference_query": "Apple iPhone 6s Plus a1634 64GB Space Gray Smartphone AT&T (Renewed)",
       "expected_orchestration": true
     },
     {
-      "id": "phone_substitute_only",
+      "id": "phone_partner_recovery_2",
+      "search_type": "specific",
+      "category": "phone",
+      "scenario_type": "partner_recovery",
+      "target_product_id": "B01H0K3130",
+      "target_product_title": "Apple iPhone 6S Plus, 16GB, Silver - Fully Unlocked (Renewed)",
+      "target_brand": "Apple",
+      "internal_stock": 0,
+      "partner_available": 1,
+      "reference_query": "Apple iPhone 6S Plus, 16GB, Silver - Fully Unlocked (Renewed)",
+      "expected_orchestration": true
+    },
+    {
+      "id": "phone_substitute_only_1",
       "search_type": "specific",
       "category": "phone",
       "scenario_type": "substitute_only",
-      "target_product_id": "B07VQMRB6S",
-      "target_product_title": "NUU Mobile A6L-G Unlocked 5.0\" Single SIM 4G LTE GSM Android Smartphone",
-      "target_brand": "NUU",
+      "target_product_id": "B00O5EU7TQ",
+      "target_product_title": "BLU Tank II T193 Unlocked GSM Dual-SIM Cell Phone w/ Camera and 1900 mAh Big Battery - Unlocked Cell Phones - Retail Packaging - Black Red",
+      "target_brand": "BLU",
       "internal_stock": 0,
       "partner_available": 0,
-      "reference_query": "NUU Mobile A6L-G Unlocked 5.0\" Single SIM 4G LTE GSM Android Smartphone",
+      "reference_query": "BLU Tank II T193 Unlocked GSM Dual-SIM Cell Phone w/ Camera and 1900 mAh Big Battery - Unlocked Cell Phones - Retail Packaging - Black Red",
       "expected_orchestration": true
     },
     {
-      "id": "laptop_normal",
+      "id": "phone_substitute_only_2",
+      "search_type": "specific",
+      "category": "phone",
+      "scenario_type": "substitute_only",
+      "target_product_id": "B0775MV9K2",
+      "target_product_title": "(Renewed) Apple iPhone 8, US Version, 64GB, Space Gray - Unlocked",
+      "target_brand": "Apple",
+      "internal_stock": 0,
+      "partner_available": 0,
+      "reference_query": "(Renewed) Apple iPhone 8, US Version, 64GB, Space Gray - Unlocked",
+      "expected_orchestration": true
+    },
+    {
+      "id": "laptop_normal_1",
       "search_type": "specific",
       "category": "laptop",
       "scenario_type": "normal",
-      "target_product_id": "B087YVDX4L",
-      "target_product_title": "HP High Performance 15.6\" Touch-Screen Laptop (15-EF0023dx) AMD Ryzen 5 3500U 12GB Memory 256GB SSD - Natural Silver",
-      "target_brand": "HP",
+      "target_product_id": "B00L87JC80",
+      "target_product_title": "Acer C720-2844 11.6-inch Chromebook, Intel Celeron 2955U 1.4GHz, 4GB RAM, 16GB SSD (Renewed)",
+      "target_brand": "Acer",
       "internal_stock": 1,
-      "partner_available": 0,
-      "reference_query": "HP High Performance 15.6\" Touch-Screen Laptop (15-EF0023dx) AMD Ryzen 5 3500U 12GB Memory 256GB SSD - Natural Silver",
+      "partner_available": 1,
+      "reference_query": "Acer C720-2844 11.6-inch Chromebook, Intel Celeron 2955U 1.4GHz, 4GB RAM, 16GB SSD (Renewed)",
       "expected_orchestration": false
     },
     {
-      "id": "laptop_partner_recovery",
+      "id": "laptop_normal_2",
       "search_type": "specific",
-      "category": "laptop",
-      "scenario_type": "partner_recovery",
-      "target_product_id": "B083CYM3TZ",
-      "target_product_title": "2020 HP Pavilion Newest 14 Inch Laptop, 10th Gen Intel 4-Core i5-1035G1 up to 3.6GHz, Intel UHD Graphics, 8GB DDR4 RAM, 256GB SSD, WiFi, Bluetooth, HDMI, Webcam, Windows 10 Home, Gold",
-      "target_brand": "HP",
-      "internal_stock": 0,
-      "partner_available": 1,
-      "reference_query": "2020 HP Pavilion Newest 14 Inch Laptop, 10th Gen Intel 4-Core i5-1035G1 up to 3.6GHz, Intel UHD Graphics, 8GB DDR4 RAM, 256GB SSD, WiFi, Bluetooth, HDMI, Webcam, Windows 10 Home, Gold",
-      "expected_orchestration": true
-    },
-    {
-      "id": "laptop_substitute_only",
-      "search_type": "specific",
-      "category": "laptop",
-      "scenario_type": "substitute_only",
-      "target_product_id": "B07BBKK2JJ",
-      "target_product_title": "Lenovo ThinkPad P52s 20LB0028US Laptop (Windows 10 Pro, Intel Core i7-8550U, 15.6\" LED-Lit Screen, Storage: 512 GB, RAM: 16 GB) Black",
-      "target_brand": "Lenovo",
-      "internal_stock": 0,
-      "partner_available": 0,
-      "reference_query": "Lenovo ThinkPad P52s 20LB0028US Laptop (Windows 10 Pro, Intel Core i7-8550U, 15.6\" LED-Lit Screen, Storage: 512 GB, RAM: 16 GB) Black",
-      "expected_orchestration": true
-    },
-    {
-      "id": "watch_normal",
-      "search_type": "specific",
-      "category": "watch",
-      "scenario_type": "normal",
-      "target_product_id": "B076KDX36S",
-      "target_product_title": "GUESS Women's Stainless Steel Android Wear Touch Screen Silicone Smart Watch, Color: Blue (Model: C1002M2)",
-      "target_brand": "GUESS",
-      "internal_stock": 1,
-      "partner_available": 0,
-      "reference_query": "GUESS Women's Stainless Steel Android Wear Touch Screen Silicone Smart Watch, Color: Blue (Model: C1002M2)",
-      "expected_orchestration": false
-    },
-    {
-      "id": "watch_partner_recovery",
-      "search_type": "specific",
-      "category": "watch",
-      "scenario_type": "partner_recovery",
-      "target_product_id": "B07W7YBBVQ",
-      "target_product_title": "Amazfit GTS Fitness Smartwatch with Heart Rate Monitor, 14-Day Battery Life, Music Control, 1.65\" Display, Sleep and Swim Tracking, GPS, Water Resistant, Smart Notifications, Desert Gold",
-      "target_brand": "Amazfit",
-      "internal_stock": 0,
-      "partner_available": 1,
-      "reference_query": "Amazfit GTS Fitness Smartwatch with Heart Rate Monitor, 14-Day Battery Life, Music Control, 1.65\" Display, Sleep and Swim Tracking, GPS, Water Resistant, Smart Notifications, Desert Gold",
-      "expected_orchestration": true
-    },
-    {
-      "id": "watch_substitute_only",
-      "search_type": "specific",
-      "category": "watch",
-      "scenario_type": "substitute_only",
-      "target_product_id": "B08CML75PC",
-      "target_product_title": "Fitness Tracker Watch Smart Watch for Android Phones Fitness Watches for Men Women Sports Activity Tracker Smartwatch Compatible with iOS with Pedometer with Heart Rate",
-      "target_brand": "BAUISAN",
-      "internal_stock": 0,
-      "partner_available": 0,
-      "reference_query": "Fitness Tracker Watch Smart Watch for Android Phones Fitness Watches for Men Women Sports Activity Tracker Smartwatch Compatible with iOS with Pedometer with Heart Rate",
-      "expected_orchestration": true
-    },
-    {
-      "id": "refrigerator_normal",
-      "search_type": "specific",
-      "category": "refrigerator",
-      "scenario_type": "normal",
-      "target_product_id": "B06XW9JS57",
-      "target_product_title": "SMETA 12V Volt Refrigerator 110V Compact Refrigerator Freightliner Cascadia Refrigerator Semi Truck Mini Fridge Upright Freezers RV Can Cooler Camper, 36 qt",
-      "target_brand": "SMETA",
-      "internal_stock": 1,
-      "partner_available": 1,
-      "reference_query": "SMETA 12V Volt Refrigerator 110V Compact Refrigerator Freightliner Cascadia Refrigerator Semi Truck Mini Fridge Upright Freezers RV Can Cooler Camper, 36 qt",
-      "expected_orchestration": false
-    },
-    {
-      "id": "refrigerator_partner_recovery",
-      "search_type": "specific",
-      "category": "refrigerator",
-      "scenario_type": "partner_recovery",
-      "target_product_id": "B00MMRFQR6",
-      "target_product_title": "Midea WHS-87LSS1 Refrigerator, 2.4 Cubic Feet, Stainless Steel",
-      "target_brand": "Midea",
-      "internal_stock": 0,
-      "partner_available": 1,
-      "reference_query": "Midea WHS-87LSS1 Refrigerator, 2.4 Cubic Feet, Stainless Steel",
-      "expected_orchestration": true
-    },
-    {
-      "id": "refrigerator_substitute_only",
-      "search_type": "specific",
-      "category": "refrigerator",
-      "scenario_type": "substitute_only",
-      "target_product_id": "B000WCVV4A",
-      "target_product_title": "3.2 Cubic Foot Refrigerator Freezer",
-      "target_brand": "RCA",
-      "internal_stock": 0,
-      "partner_available": 0,
-      "reference_query": "3.2 Cubic Foot Refrigerator Freezer",
-      "expected_orchestration": true
-    }
-  ],
-  "general": [
-    {
-      "id": "phone_general_1",
-      "search_type": "general",
-      "category": "phone",
-      "target_constraints": {
-        "max_price": 60000,
-        "ram_gb": 12,
-        "storage_gb": 512,
-        "screen_inches": 6.6,
-        "color": "black"
-      },
-      "reference_query": "black phone under 60000 with 12gb ram and 512gb storage 6.6 inch",
-      "reference_product_id": "B081VVW3BJ",
-      "reference_product_title": "ASUS ROG Gaming Phone II (ZS660KL-S855P-12G512G-BK) 6.6\" FHD+ 2340x1080 HDR 120Hz Display - 48MP/13MP Camera - 12GB RAM 512GB Storage - LTE Unlocked Dual SIM Cell Phone - US Warranty - Black (Renewed)"
-    },
-    {
-      "id": "phone_general_2",
-      "search_type": "general",
-      "category": "phone",
-      "target_constraints": {
-        "max_price": 70000,
-        "ram_gb": 8,
-        "storage_gb": 128,
-        "screen_inches": 6.0,
-        "color": "black"
-      },
-      "reference_query": "black phone under 70000 with 8gb ram and 128gb storage 6.0 inch",
-      "reference_product_id": "B07VKQ63VK",
-      "reference_product_title": "ASUS ZS600KL-S845-8G128G ROG Gaming Smartphone 6\" FHD+ 2160x1080 90Hz Display - Qualcomm SD 845 - 8GB RAM/128GB Storage - LTE Unlocked Dual SIM (GSM Only), Black (Renewed)"
-    },
-    {
-      "id": "laptop_general_1",
-      "search_type": "general",
-      "category": "laptop",
-      "target_constraints": {
-        "max_price": 80000,
-        "ram_gb": 4,
-        "storage_gb": 500,
-        "screen_inches": 15.6,
-        "color": "red"
-      },
-      "reference_query": "red laptop under 80000 with 4gb ram and 500gb storage 15.6 inch",
-      "reference_product_id": "B08JLGKCNY",
-      "reference_product_title": "2021 HP Pavilion 15.6\" HD Laptop Computer, Intel Dual-core Pentium Processor, 4GB RAM, 500GB HDD, HD Webcam, Intel UHD Graphics 605, Bluetooth, USB-C, HDMI, Win 10, Scarlet Red, 32GB SnowBell USB Card"
-    },
-    {
-      "id": "laptop_general_2",
-      "search_type": "general",
-      "category": "laptop",
-      "target_constraints": {
-        "max_price": 40000,
-        "ram_gb": 4,
-        "storage_gb": 64,
-        "screen_inches": 14.0,
-        "color": "blue"
-      },
-      "reference_query": "blue laptop under 40000 with 4gb ram and 64gb storage 14.0 inch",
-      "reference_product_id": "B08YKHYCPW",
-      "reference_product_title": "Lenovo IdeaPad 1 14 14.0\" Laptop, 14.0\" HD (1366 x 768) Display, Intel Celeron N4020 Processor, 4GB DDR4 RAM, 64 GB SSD Storage, Intel UHD Graphics 600, Win 10 in S Mode, 81VU0079US, Ice Blue"
-    },
-    {
-      "id": "watch_general_1",
-      "search_type": "general",
-      "category": "watch",
-      "target_constraints": {
-        "max_price": 40000,
-        "color": "brown",
-        "brand": "diesel"
-      },
-      "reference_query": "diesel brown watch under 40000",
-      "reference_product_id": "B08XZXTD2V",
-      "reference_product_title": "Diesel On Men's 48mm Axial Stainless Steel and Leather Touchscreen Smart Watch, Color: Gunmetal, Brown (Model: DZT2032)"
-    },
-    {
-      "id": "watch_general_2",
-      "search_type": "general",
-      "category": "watch",
-      "target_constraints": {
-        "max_price": 60000,
-        "ram_gb": 1,
-        "color": "black"
-      },
-      "reference_query": "black watch under 60000 with 1gb ram",
-      "reference_product_id": "B08WC5P6B3",
-      "reference_product_title": "TicWatch Pro S smartwatch with 1GB RAM Memory 2-30 Days Battery Life Built-in GPS IP68 Waterproof 24h Heart Rate Monitoring Sleep Tracking Wear OS by Google smartwatch for Men and Women"
-    },
-    {
-      "id": "refrigerator_general_1",
-      "search_type": "general",
-      "category": "refrigerator",
-      "target_constraints": {
-        "max_price": 100000,
-        "color": "black",
-        "brand": "homelabs"
-      },
-      "reference_query": "homelabs black refrigerator under 100000",
-      "reference_product_id": "B0786TJC33",
-      "reference_product_title": "hOmeLabs Beverage Refrigerator and Cooler - 120 Can Mini Fridge with Glass Door for Soda Beer or Wine - Small Drink Dispenser Machine for Office or Bar with Adjustable Removable Shelves"
-    },
-    {
-      "id": "refrigerator_general_2",
-      "search_type": "general",
-      "category": "refrigerator",
-      "target_constraints": {
-        "max_price": 110000,
-        "color": "black",
-        "brand": "frestec"
-      },
-      "reference_query": "frestec black refrigerator under 110000",
-      "reference_product_id": "B091NTTHLJ",
-      "reference_product_title": "Mini Fridge,1.7 Cu.Ft. Small Refrigerator,Energy Star Small Fridge,One-touch Easy Defrost,6 Temperature Settings,Low Noise,Reversible Doors,Compact Refrigerator for Bedroom,Office,Dorm,Basement (Black)"
-    }
-  ]
-}
