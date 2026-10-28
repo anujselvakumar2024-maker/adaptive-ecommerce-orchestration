@@ -182,6 +182,8 @@ def verify_specific(
     return False
 
 
+SPECIFIC_PER_CONDITION = 2
+
 for category in categories:
 
     cat = products[
@@ -213,9 +215,15 @@ for category in categories:
 
     for scenario_type, pool in conditions.items():
 
-        found = False
+        added = 0
+
+        # Stable ordering keeps generation reproducible
+        pool = pool.sort_values("product_id")
 
         for _, row in pool.iterrows():
+
+            if added >= SPECIFIC_PER_CONDITION:
+                break
 
             if not verify_specific(
                 row,
@@ -225,7 +233,7 @@ for category in categories:
 
             specific.append({
                 "id":
-                    f"{category}_{scenario_type}",
+                    f"{category}_{scenario_type}_{added + 1}",
 
                 "search_type":
                     "specific",
@@ -258,8 +266,7 @@ for category in categories:
                     ),
 
                 # Internal testing only.
-                # Do not show/pre-fill this
-                # during participant trial.
+                # Never show or pre-fill this for participants.
                 "reference_query":
                     row["product_title"],
 
@@ -268,17 +275,17 @@ for category in categories:
                     != "normal"
             })
 
-            found = True
-            break
+            added += 1
 
-        if not found:
+        if added < SPECIFIC_PER_CONDITION:
             print(
                 "WARNING:",
                 category,
                 scenario_type,
-                "not found"
+                "only found",
+                added,
+                "valid scenarios"
             )
-
 
 # ======================================================
 # GENERAL SEARCH SCENARIOS
