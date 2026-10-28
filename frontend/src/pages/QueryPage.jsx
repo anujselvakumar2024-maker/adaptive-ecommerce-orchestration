@@ -83,7 +83,7 @@ export default function QueryPage() {
         sessionId={session.sessionId}
         stageKey="query"
         title="What to do"
-        message="Write your search query as if you were a customer looking for the product or specifications shown above. Next, you’ll compare the search results returned for your query."
+        message="Write your search query as if you were a customer looking for the product or specifications which you just entered. Next, you’ll compare the search results returned for your query."
       />
 
       {/* Step Header */}
